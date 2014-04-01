@@ -161,7 +161,7 @@ const Color& Text::getColor() const
 
 
 ////////////////////////////////////////////////////////////
-Vector2f Text::findCharacterPos(std::size_t index) const
+Vector3f Text::findCharacterPos(std::size_t index) const
 {
     // Make sure that we have a valid font
     if (!m_font)
@@ -293,9 +293,9 @@ void Text::ensureGeometryUpdate() const
             float bottom = top + underlineThickness;
 
             m_vertices.append(Vertex(Vector2f(0, top),    m_color, Vector2f(1, 1)));
-            m_vertices.append(Vertex(Vector2f(x, top),    m_color, Vector2f(1, 1)));
-            m_vertices.append(Vertex(Vector2f(x, bottom), m_color, Vector2f(1, 1)));
             m_vertices.append(Vertex(Vector2f(0, bottom), m_color, Vector2f(1, 1)));
+            m_vertices.append(Vertex(Vector2f(x, bottom), m_color, Vector2f(1, 1)));
+            m_vertices.append(Vertex(Vector2f(x, top),    m_color, Vector2f(1, 1)));
         }
 
         // Handle special characters
@@ -336,9 +336,9 @@ void Text::ensureGeometryUpdate() const
 
         // Add a quad for the current character
         m_vertices.append(Vertex(Vector2f(x + left  - italic * top,    y + top),    m_color, Vector2f(u1, v1)));
-        m_vertices.append(Vertex(Vector2f(x + right - italic * top,    y + top),    m_color, Vector2f(u2, v1)));
-        m_vertices.append(Vertex(Vector2f(x + right - italic * bottom, y + bottom), m_color, Vector2f(u2, v2)));
         m_vertices.append(Vertex(Vector2f(x + left  - italic * bottom, y + bottom), m_color, Vector2f(u1, v2)));
+        m_vertices.append(Vertex(Vector2f(x + right - italic * bottom, y + bottom), m_color, Vector2f(u2, v2)));
+        m_vertices.append(Vertex(Vector2f(x + right - italic * top,    y + top),    m_color, Vector2f(u2, v1)));
 
         // Update the current bounds
         minX = std::min(minX, x + left - italic * bottom);
@@ -357,9 +357,9 @@ void Text::ensureGeometryUpdate() const
         float bottom = top + underlineThickness;
 
         m_vertices.append(Vertex(Vector2f(0, top),    m_color, Vector2f(1, 1)));
-        m_vertices.append(Vertex(Vector2f(x, top),    m_color, Vector2f(1, 1)));
-        m_vertices.append(Vertex(Vector2f(x, bottom), m_color, Vector2f(1, 1)));
         m_vertices.append(Vertex(Vector2f(0, bottom), m_color, Vector2f(1, 1)));
+        m_vertices.append(Vertex(Vector2f(x, bottom), m_color, Vector2f(1, 1)));
+        m_vertices.append(Vertex(Vector2f(x, top),    m_color, Vector2f(1, 1)));
     }
 
     // Update the bounding rectangle

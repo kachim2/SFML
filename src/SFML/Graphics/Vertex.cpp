@@ -34,43 +34,58 @@ namespace sf
 Vertex::Vertex() :
 position (0, 0),
 color    (255, 255, 255),
-texCoords(0, 0)
+texCoords(0, 0),
+normal   (0, 0, 1)
 {
 }
 
 
 ////////////////////////////////////////////////////////////
-Vertex::Vertex(const Vector2f& thePosition) :
+Vertex::Vertex(const Vector3f& thePosition) :
 position (thePosition),
 color    (255, 255, 255),
-texCoords(0, 0)
+texCoords(0, 0),
+normal   (0, 0, 1)
 {
 }
 
 
 ////////////////////////////////////////////////////////////
-Vertex::Vertex(const Vector2f& thePosition, const Color& theColor) :
+Vertex::Vertex(const Vector3f& thePosition, const Color& theColor) :
 position (thePosition),
 color    (theColor),
-texCoords(0, 0)
+texCoords(0, 0),
+normal   (0, 0, 1)
 {
 }
 
 
 ////////////////////////////////////////////////////////////
-Vertex::Vertex(const Vector2f& thePosition, const Vector2f& theTexCoords) :
+Vertex::Vertex(const Vector3f& thePosition, const Vector2f& theTexCoords) :
 position (thePosition),
 color    (255, 255, 255),
-texCoords(theTexCoords)
+texCoords(theTexCoords),
+normal   (0, 0, 1)
 {
 }
 
 
 ////////////////////////////////////////////////////////////
-Vertex::Vertex(const Vector2f& thePosition, const Color& theColor, const Vector2f& theTexCoords) :
+Vertex::Vertex(const Vector3f& thePosition, const Color& theColor, const Vector2f& theTexCoords) :
 position (thePosition),
 color    (theColor),
-texCoords(theTexCoords)
+texCoords(theTexCoords),
+normal   (0, 0, 1)
+{
+}
+
+
+////////////////////////////////////////////////////////////
+Vertex::Vertex(const Vector3f& thePosition, const Color& theColor, const Vector2f& theTexCoords, const Vector3f& theNormal) :
+position (thePosition),
+color    (theColor),
+texCoords(theTexCoords),
+normal   (theNormal)
 {
 }
 

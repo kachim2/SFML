@@ -1,5 +1,6 @@
 
 # add the examples subdirectories
+add_subdirectory(3d)
 add_subdirectory(ftp)
 add_subdirectory(opengl)
 add_subdirectory(pong)

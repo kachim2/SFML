@@ -59,15 +59,16 @@ public :
     ///
     /// This function completely overwrites the previous position.
     /// See the move function to apply an offset based on the previous position instead.
-    /// The default position of a transformable object is (0, 0).
+    /// The default position of a transformable object is (0, 0, 0).
     ///
     /// \param x X coordinate of the new position
     /// \param y Y coordinate of the new position
+    /// \param z Z coordinate of the new position
     ///
     /// \see move, getPosition
     ///
     ////////////////////////////////////////////////////////////
-    void setPosition(float x, float y);
+    void setPosition(float x, float y, float z = 0);
 
     ////////////////////////////////////////////////////////////
     /// \brief set the position of the object
@@ -81,7 +82,7 @@ public :
     /// \see move, getPosition
     ///
     ////////////////////////////////////////////////////////////
-    void setPosition(const Vector2f& position);
+    void setPosition(const Vector3f& position);
 
     ////////////////////////////////////////////////////////////
     /// \brief set the orientation of the object
@@ -98,6 +99,21 @@ public :
     void setRotation(float angle);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Set the orientation of the object
+    ///
+    /// This function completely overwrites the previous rotation.
+    /// See the rotate function to add an angle based on the previous rotation instead.
+    /// The default rotation of a transformable object is 0.
+    ///
+    /// \param angle New rotation, in degrees
+    /// \param axis  Axis of rotation
+    ///
+    /// \see rotate, getRotation
+    ///
+    ////////////////////////////////////////////////////////////
+    void setRotation(float angle, const sf::Vector3f& axis);
+
+    ////////////////////////////////////////////////////////////
     /// \brief set the scale factors of the object
     ///
     /// This function completely overwrites the previous scale.
@@ -106,11 +122,12 @@ public :
     ///
     /// \param factorX New horizontal scale factor
     /// \param factorY New vertical scale factor
+    /// \param factorY New depth scale factor
     ///
     /// \see scale, getScale
     ///
     ////////////////////////////////////////////////////////////
-    void setScale(float factorX, float factorY);
+    void setScale(float factorX, float factorY, float factorZ = 1);
 
     ////////////////////////////////////////////////////////////
     /// \brief set the scale factors of the object
@@ -124,7 +141,7 @@ public :
     /// \see scale, getScale
     ///
     ////////////////////////////////////////////////////////////
-    void setScale(const Vector2f& factors);
+    void setScale(const Vector3f& factors);
 
     ////////////////////////////////////////////////////////////
     /// \brief set the local origin of the object
@@ -134,15 +151,16 @@ public :
     /// The coordinates of this point must be relative to the
     /// top-left corner of the object, and ignore all
     /// transformations (position, scale, rotation).
-    /// The default origin of a transformable object is (0, 0).
+    /// The default origin of a transformable object is (0, 0, 0).
     ///
     /// \param x X coordinate of the new origin
     /// \param y Y coordinate of the new origin
+    /// \param z Z coordinate of the new origin
     ///
     /// \see getOrigin
     ///
     ////////////////////////////////////////////////////////////
-    void setOrigin(float x, float y);
+    void setOrigin(float x, float y, float z = 0);
 
     ////////////////////////////////////////////////////////////
     /// \brief set the local origin of the object
@@ -159,7 +177,7 @@ public :
     /// \see getOrigin
     ///
     ////////////////////////////////////////////////////////////
-    void setOrigin(const Vector2f& origin);
+    void setOrigin(const Vector3f& origin);
 
     ////////////////////////////////////////////////////////////
     /// \brief get the position of the object
@@ -169,7 +187,7 @@ public :
     /// \see setPosition
     ///
     ////////////////////////////////////////////////////////////
-    const Vector2f& getPosition() const;
+    const Vector3f& getPosition() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief get the orientation of the object
@@ -191,7 +209,7 @@ public :
     /// \see setScale
     ///
     ////////////////////////////////////////////////////////////
-    const Vector2f& getScale() const;
+    const Vector3f& getScale() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief get the local origin of the object
@@ -201,7 +219,7 @@ public :
     /// \see setOrigin
     ///
     ////////////////////////////////////////////////////////////
-    const Vector2f& getOrigin() const;
+    const Vector3f& getOrigin() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Move the object by a given offset
@@ -210,17 +228,18 @@ public :
     /// unlike setPosition which overwrites it.
     /// Thus, it is equivalent to the following code:
     /// \code
-    /// sf::Vector2f pos = object.getPosition();
-    /// object.setPosition(pos.x + offsetX, pos.y + offsetY);
+    /// sf::Vector3f pos = object.getPosition();
+    /// object.setPosition(pos.x + offsetX, pos.y + offsetY, pos.z + offsetZ);
     /// \endcode
     ///
     /// \param offsetX X offset
     /// \param offsetY Y offset
+    /// \param offsetY Z offset
     ///
     /// \see setPosition
     ///
     ////////////////////////////////////////////////////////////
-    void move(float offsetX, float offsetY);
+    void move(float offsetX, float offsetY, float offsetZ = 0);
 
     ////////////////////////////////////////////////////////////
     /// \brief Move the object by a given offset
@@ -237,7 +256,7 @@ public :
     /// \see setPosition
     ///
     ////////////////////////////////////////////////////////////
-    void move(const Vector2f& offset);
+    void move(const Vector3f& offset);
 
     ////////////////////////////////////////////////////////////
     /// \brief Rotate the object
@@ -255,23 +274,20 @@ public :
     void rotate(float angle);
 
     ////////////////////////////////////////////////////////////
-    /// \brief Scale the object
+    /// \brief Rotate the object
     ///
-    /// This function multiplies the current scale of the object,
-    /// unlike setScale which overwrites it.
+    /// This function adds to the current rotation of the object,
+    /// unlike setRotation which overwrites it.
     /// Thus, it is equivalent to the following code:
     /// \code
-    /// sf::Vector2f scale = object.getScale();
-    /// object.setScale(scale.x * factorX, scale.y * factorY);
+    /// object.setRotation(object.getRotation() + angle);
     /// \endcode
     ///
-    /// \param factorX Horizontal scale factor
-    /// \param factorY Vertical scale factor
-    ///
-    /// \see setScale
+    /// \param angle Angle of rotation, in degrees
+    /// \param axis  Axis of rotation
     ///
     ////////////////////////////////////////////////////////////
-    void scale(float factorX, float factorY);
+    void rotate(float angle, const Vector3f& axis);
 
     ////////////////////////////////////////////////////////////
     /// \brief Scale the object
@@ -280,8 +296,28 @@ public :
     /// unlike setScale which overwrites it.
     /// Thus, it is equivalent to the following code:
     /// \code
-    /// sf::Vector2f scale = object.getScale();
-    /// object.setScale(scale.x * factor.x, scale.y * factor.y);
+    /// sf::Vector3f scale = object.getScale();
+    /// object.setScale(scale.x * factorX, scale.y * factorY, scale.z * factorZ);
+    /// \endcode
+    ///
+    /// \param factorX Horizontal scale factor
+    /// \param factorY Vertical scale factor
+    /// \param factorZ Depth scale factor
+    ///
+    /// \see setScale
+    ///
+    ////////////////////////////////////////////////////////////
+    void scale(float factorX, float factorY, float factorZ = 1);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Scale the object
+    ///
+    /// This function multiplies the current scale of the object,
+    /// unlike setScale which overwrites it.
+    /// Thus, it is equivalent to the following code:
+    /// \code
+    /// sf::Vector3f scale = object.getScale();
+    /// object.setScale(scale.x * factor.x, scale.y * factor.y, scale.z * factor.z);
     /// \endcode
     ///
     /// \param factor Scale factors
@@ -289,7 +325,7 @@ public :
     /// \see setScale
     ///
     ////////////////////////////////////////////////////////////
-    void scale(const Vector2f& factor);
+    void scale(const Vector3f& factor);
 
     ////////////////////////////////////////////////////////////
     /// \brief get the combined transform of the object
@@ -316,10 +352,11 @@ private :
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    Vector2f          m_origin;                     ///< Origin of translation/rotation/scaling of the object
-    Vector2f          m_position;                   ///< Position of the object in the 2D world
+    Vector3f          m_origin;                     ///< Origin of translation/rotation/scaling of the object
+    Vector3f          m_position;                   ///< Position of the object in the 3D world
     float             m_rotation;                   ///< Orientation of the object, in degrees
-    Vector2f          m_scale;                      ///< Scale of the object
+    Vector3f          m_scale;                      ///< Scale of the object
+    mutable Transform m_rotation_transform;         ///< Combined transformation of the object
     mutable Transform m_transform;                  ///< Combined transformation of the object
     mutable bool      m_transformNeedUpdate;        ///< Does the transform need to be recomputed?
     mutable Transform m_inverseTransform;           ///< Combined transformation of the object

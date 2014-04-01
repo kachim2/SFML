@@ -70,10 +70,23 @@ public :
     void clear(const Color& color = Color(0, 0, 0, 255));
 
     ////////////////////////////////////////////////////////////
+    /// \brief Enable or disable depth testing
+    ///
+    /// Depth testing removes the need to draw in back to front
+    /// order. The graphics hardware will make sure objects
+    /// that are positioned in front of other objects will
+    /// be seen no matter when they are drawn.
+    ///
+    /// \param enable True to enable, false to disable
+    ///
+    ////////////////////////////////////////////////////////////
+    void enableDepthTest(bool enable);
+
+    ////////////////////////////////////////////////////////////
     /// \brief Change the current active view
     ///
-    /// The view is like a 2D camera, it controls which part of
-    /// the 2D scene is visible, and how it is viewed in the
+    /// The view is like a camera, it controls which part of
+    /// the scene is visible, and how it is viewed in the
     /// render-target.
     /// The new view will affect everything that is drawn, until
     /// another view is set.
@@ -88,7 +101,8 @@ public :
     /// \see getView, getDefaultView
     ///
     ////////////////////////////////////////////////////////////
-    void setView(const View& view);
+    template <typename T>
+    void setView(const T& view);
 
     ////////////////////////////////////////////////////////////
     /// \brief Get the view currently in use in the render target
@@ -197,7 +211,7 @@ public :
     /// \see mapPixelToCoords
     ///
     ////////////////////////////////////////////////////////////
-    Vector2i mapCoordsToPixel(const Vector2f& point) const;
+    Vector2i mapCoordsToPixel(const Vector3f& point) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Convert a point from world coordinates to target coordinates
@@ -224,7 +238,7 @@ public :
     /// \see mapPixelToCoords
     ///
     ////////////////////////////////////////////////////////////
-    Vector2i mapCoordsToPixel(const Vector2f& point, const View& view) const;
+    Vector2i mapCoordsToPixel(const Vector3f& point, const View& view) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Draw a drawable object to the render-target
@@ -340,6 +354,11 @@ protected :
     ////////////////////////////////////////////////////////////
     void initialize();
 
+    ////////////////////////////////////////////////////////////
+    // Member data
+    ////////////////////////////////////////////////////////////
+    bool m_clearDepth; ///< Whether there is a depth buffer to clear
+
 private:
 
     ////////////////////////////////////////////////////////////
@@ -414,9 +433,12 @@ private:
     // Member data
     ////////////////////////////////////////////////////////////
     View        m_defaultView; ///< Default view
-    View        m_view;        ///< Current view
+    View*       m_view;        ///< Current view
     StatesCache m_cache;       ///< Render states cache
+    bool        m_depthTest;   ///< Whether depth testing is enabled
 };
+
+#include <SFML/Graphics/RenderTarget.inl>
 
 } // namespace sf
 

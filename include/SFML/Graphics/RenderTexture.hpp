@@ -76,14 +76,15 @@ public :
     /// a depth-buffer. Otherwise it is unnecessary, and you should
     /// leave this parameter to false (which is its default value).
     ///
-    /// \param width       Width of the render-texture
-    /// \param height      Height of the render-texture
-    /// \param depthBuffer Do you want this render-texture to have a depth buffer?
+    /// \param width         Width of the render-texture
+    /// \param height        Height of the render-texture
+    /// \param depthBuffer   Do you want this render-texture to have a depth buffer?
+    /// \param stencilBuffer Do you want this render-texture to have a stencil buffer?
     ///
     /// \return True if creation has been successful
     ///
     ////////////////////////////////////////////////////////////
-    bool create(unsigned int width, unsigned int height, bool depthBuffer = false);
+    bool create(unsigned int width, unsigned int height, bool depthBuffer = false, bool stencilBuffer = false);
 
     ////////////////////////////////////////////////////////////
     /// \brief Enable or disable texture smoothing

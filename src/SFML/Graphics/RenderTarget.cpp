@@ -32,7 +32,6 @@
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/Graphics/GLCheck.hpp>
 #include <SFML/System/Err.hpp>
-#include <iostream>
 
 
 namespace sf
@@ -40,8 +39,10 @@ namespace sf
 ////////////////////////////////////////////////////////////
 RenderTarget::RenderTarget() :
 m_defaultView(),
-m_view       (),
-m_cache      ()
+m_view       (NULL),
+m_cache      (),
+m_depthTest  (false),
+m_clearDepth (false)
 {
     m_cache.glStatesSet = false;
 }
@@ -50,6 +51,7 @@ m_cache      ()
 ////////////////////////////////////////////////////////////
 RenderTarget::~RenderTarget()
 {
+    delete m_view;
 }
 
 
@@ -59,23 +61,32 @@ void RenderTarget::clear(const Color& color)
     if (activate(true))
     {
         glCheck(glClearColor(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f));
-        glCheck(glClear(GL_COLOR_BUFFER_BIT));
+        glCheck(glClear(GL_COLOR_BUFFER_BIT | (m_clearDepth ? GL_DEPTH_BUFFER_BIT : 0)));
     }
 }
 
 
 ////////////////////////////////////////////////////////////
-void RenderTarget::setView(const View& view)
+void RenderTarget::enableDepthTest(bool enable)
 {
-    m_view = view;
-    m_cache.viewChanged = true;
+    m_depthTest = enable;
+
+    if(enable)
+    {
+        glCheck(glEnable(GL_DEPTH_TEST));
+        glCheck(glDepthFunc(GL_GEQUAL));
+        glClearDepth(0.f);
+        glDepthRangef(1.f, 0.f);
+    }
+    else
+        glCheck(glDisable(GL_DEPTH_TEST));
 }
 
 
 ////////////////////////////////////////////////////////////
 const View& RenderTarget::getView() const
 {
-    return m_view;
+    return *m_view;
 }
 
 
@@ -121,16 +132,16 @@ Vector2f RenderTarget::mapPixelToCoords(const Vector2i& point, const View& view)
 }
 
 ////////////////////////////////////////////////////////////
-Vector2i RenderTarget::mapCoordsToPixel(const Vector2f& point) const
+Vector2i RenderTarget::mapCoordsToPixel(const Vector3f& point) const
 {
     return mapCoordsToPixel(point, getView());
 }
 
 ////////////////////////////////////////////////////////////
-Vector2i RenderTarget::mapCoordsToPixel(const Vector2f& point, const View& view) const
+Vector2i RenderTarget::mapCoordsToPixel(const Vector3f& point, const View& view) const
 {
-    // First, transform the point by the view matrix
-    Vector2f normalized = view.getTransform().transformPoint(point);
+    // First, transform the point by the modelview and projection matrix
+    Vector3f normalized = (view.getTransform() * view.getViewTransform()).transformPoint(point);
 
     // Then convert to viewport coordinates
     Vector2i pixel;
@@ -163,7 +174,7 @@ void RenderTarget::draw(const Vertex* vertices, unsigned int vertexCount,
             resetGLStates();
 
         // Check if the vertex count is low enough so that we can pre-transform them
-        bool useVertexCache = (vertexCount <= StatesCache::VertexCacheSize);
+        bool useVertexCache = (vertexCount <= StatesCache::VertexCacheSize) && states.useVertexCache;
         if (useVertexCache)
         {
             // Pre-transform the vertices and store them into the vertex cache
@@ -173,6 +184,7 @@ void RenderTarget::draw(const Vertex* vertices, unsigned int vertexCount,
                 vertex.position = states.transform * vertices[i].position;
                 vertex.color = vertices[i].color;
                 vertex.texCoords = vertices[i].texCoords;
+                vertex.normal = vertices[i].normal;
             }
 
             // Since vertices are transformed, we must use an identity transform to render them
@@ -215,9 +227,10 @@ void RenderTarget::draw(const Vertex* vertices, unsigned int vertexCount,
         if (vertices)
         {
             const char* data = reinterpret_cast<const char*>(vertices);
-            glCheck(glVertexPointer(2, GL_FLOAT, sizeof(Vertex), data + 0));
-            glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), data + 8));
-            glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), data + 12));
+            glCheck(glVertexPointer(3, GL_FLOAT, sizeof(Vertex), data + 0));
+            glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), data + 12));
+            glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), data + 16));
+            glCheck(glNormalPointer(GL_FLOAT, sizeof(Vertex), data + 24));
         }
 
         // Find the OpenGL primitive type
@@ -294,16 +307,20 @@ void RenderTarget::resetGLStates()
         priv::ensureGlewInit();
 
         // Define the default OpenGL states
-        glCheck(glDisable(GL_CULL_FACE));
         glCheck(glDisable(GL_LIGHTING));
-        glCheck(glDisable(GL_DEPTH_TEST));
+        if(!m_depthTest)
+            glCheck(glDisable(GL_DEPTH_TEST));
         glCheck(glDisable(GL_ALPHA_TEST));
+        glCheck(glEnable(GL_COLOR_MATERIAL));
+        glCheck(glEnable(GL_CULL_FACE));
+        glCheck(glEnable(GL_NORMALIZE));
         glCheck(glEnable(GL_TEXTURE_2D));
         glCheck(glEnable(GL_BLEND));
         glCheck(glMatrixMode(GL_MODELVIEW));
         glCheck(glEnableClientState(GL_VERTEX_ARRAY));
         glCheck(glEnableClientState(GL_COLOR_ARRAY));
         glCheck(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+        glCheck(glEnableClientState(GL_NORMAL_ARRAY));
         glCheck(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
         m_cache.glStatesSet = true;
 
@@ -316,7 +333,7 @@ void RenderTarget::resetGLStates()
         m_cache.useVertexCache = false;
 
         // Set the default view
-        setView(getView());
+        setView(m_defaultView);
     }
 }
 
@@ -326,7 +343,9 @@ void RenderTarget::initialize()
 {
     // Setup the default and current views
     m_defaultView.reset(FloatRect(0, 0, static_cast<float>(getSize().x), static_cast<float>(getSize().y)));
-    m_view = m_defaultView;
+
+    delete m_view;
+    m_view = new View(m_defaultView);
 
     // Set GL states only on first draw, so that we don't pollute user's states
     m_cache.glStatesSet = false;
@@ -337,13 +356,13 @@ void RenderTarget::initialize()
 void RenderTarget::applyCurrentView()
 {
     // Set the viewport
-    IntRect viewport = getViewport(m_view);
+    IntRect viewport = getViewport(*m_view);
     int top = getSize().y - (viewport.top + viewport.height);
     glCheck(glViewport(viewport.left, top, viewport.width, viewport.height));
 
     // Set the projection matrix
     glCheck(glMatrixMode(GL_PROJECTION));
-    glCheck(glLoadMatrixf(m_view.getTransform().getMatrix()));
+    glCheck(glLoadMatrixf(m_view->getTransform().getMatrix()));
 
     // Go back to model-view mode
     glCheck(glMatrixMode(GL_MODELVIEW));
@@ -397,7 +416,7 @@ void RenderTarget::applyTransform(const Transform& transform)
 {
     // No need to call glMatrixMode(GL_MODELVIEW), it is always the
     // current mode (for optimization purpose, since it's the most used)
-    glCheck(glLoadMatrixf(transform.getMatrix()));
+    glCheck(glLoadMatrixf((m_view->getViewTransform() * transform).getMatrix()));
 }
 
 

@@ -37,50 +37,55 @@ const RenderStates RenderStates::Default;
 
 ////////////////////////////////////////////////////////////
 RenderStates::RenderStates() :
-blendMode(BlendAlpha),
-transform(),
-texture  (NULL),
-shader   (NULL)
+blendMode     (BlendAlpha),
+transform     (),
+texture       (NULL),
+shader        (NULL),
+useVertexCache(true)
 {
 }
 
 
 ////////////////////////////////////////////////////////////
 RenderStates::RenderStates(const Transform& theTransform) :
-blendMode(BlendAlpha),
-transform(theTransform),
-texture  (NULL),
-shader   (NULL)
+blendMode     (BlendAlpha),
+transform     (theTransform),
+texture       (NULL),
+shader        (NULL),
+useVertexCache(true)
 {
 }
 
 
 ////////////////////////////////////////////////////////////
 RenderStates::RenderStates(BlendMode theBlendMode) :
-blendMode(theBlendMode),
-transform(),
-texture  (NULL),
-shader   (NULL)
+blendMode     (theBlendMode),
+transform     (),
+texture       (NULL),
+shader        (NULL),
+useVertexCache(true)
 {
 }
 
 
 ////////////////////////////////////////////////////////////
 RenderStates::RenderStates(const Texture* theTexture) :
-blendMode(BlendAlpha),
-transform(),
-texture  (theTexture),
-shader   (NULL)
+blendMode     (BlendAlpha),
+transform     (),
+texture       (theTexture),
+shader        (NULL),
+useVertexCache(true)
 {
 }
 
 
 ////////////////////////////////////////////////////////////
 RenderStates::RenderStates(const Shader* theShader) :
-blendMode(BlendAlpha),
-transform(),
-texture  (NULL),
-shader   (theShader)
+blendMode     (BlendAlpha),
+transform     (),
+texture       (NULL),
+shader        (theShader),
+useVertexCache(true)
 {
 }
 
@@ -88,10 +93,11 @@ shader   (theShader)
 ////////////////////////////////////////////////////////////
 RenderStates::RenderStates(BlendMode theBlendMode, const Transform& theTransform,
                            const Texture* theTexture, const Shader* theShader) :
-blendMode(theBlendMode),
-transform(theTransform),
-texture  (theTexture),
-shader   (theShader)
+blendMode     (theBlendMode),
+transform     (theTransform),
+texture       (theTexture),
+shader        (theShader),
+useVertexCache(true)
 {
 }
 

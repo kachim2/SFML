@@ -88,7 +88,7 @@ public :
     /// \return Index-th point of the shape
     ///
     ////////////////////////////////////////////////////////////
-    virtual Vector2f getPoint(unsigned int index) const;
+    virtual Vector3f getPoint(unsigned int index) const;
 
 private :
 

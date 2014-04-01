@@ -32,6 +32,7 @@
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/Box.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <vector>
 
@@ -161,15 +162,15 @@ public :
     PrimitiveType getPrimitiveType() const;
 
     ////////////////////////////////////////////////////////////
-    /// \brief Compute the bounding rectangle of the vertex array
+    /// \brief Compute the bounding box of the vertex array
     ///
-    /// This function returns the axis-aligned rectangle that
+    /// This function returns the axis-aligned box that
     /// contains all the vertices of the array.
     ///
-    /// \return Bounding rectangle of the vertex array
+    /// \return Bounding box of the vertex array
     ///
     ////////////////////////////////////////////////////////////
-    FloatRect getBounds() const;
+    FloatBox getBounds() const;
 
 private :
 
@@ -207,13 +208,18 @@ private:
 /// It inherits sf::Drawable, but unlike other drawables it
 /// is not transformable.
 ///
+/// Be aware of the order when specifying vertices. By default,
+/// outward facing faces have counter-clockwise winding and as
+/// such any faces specified in clockwise order might not be
+/// displayed.
+///
 /// Example:
 /// \code
 /// sf::VertexArray lines(sf::LinesStrip, 4);
-/// lines[0].position = sf::Vector2f(10, 0);
-/// lines[1].position = sf::Vector2f(20, 0);
-/// lines[2].position = sf::Vector2f(30, 5);
-/// lines[3].position = sf::Vector2f(40, 2);
+/// lines[0].position = sf::Vector3f(10, 0, 0);
+/// lines[1].position = sf::Vector3f(20, 0, 0);
+/// lines[2].position = sf::Vector3f(30, 5, 0);
+/// lines[3].position = sf::Vector3f(40, 2, 0);
 ///
 /// window.draw(lines);
 /// \endcode

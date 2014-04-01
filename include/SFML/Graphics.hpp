@@ -43,13 +43,21 @@
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/ConvexShape.hpp>
+#include <SFML/Graphics/Light.hpp>
+#include <SFML/Graphics/Polyhedron.hpp>
+#include <SFML/Graphics/SphericalPolyhedron.hpp>
+#include <SFML/Graphics/Cuboid.hpp>
+#include <SFML/Graphics/ConvexPolyhedron.hpp>
+#include <SFML/Graphics/Model.hpp>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Billboard.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Transform.hpp>
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/Graphics/View.hpp>
+#include <SFML/Graphics/Camera.hpp>
 
 
 #endif // SFML_GRAPHICS_HPP

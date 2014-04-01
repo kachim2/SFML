@@ -31,7 +31,7 @@
 #include <SFML/Graphics/Export.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/Transform.hpp>
-#include <SFML/System/Vector2.hpp>
+#include <SFML/System/Vector3.hpp>
 
 
 namespace sf
@@ -67,18 +67,25 @@ public :
     /// \param size   Size of zone to display
     ///
     ////////////////////////////////////////////////////////////
-    View(const Vector2f& center, const Vector2f& size);
+    View(const Vector3f& center, const Vector2f& size);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Destructor
+    ///
+    ////////////////////////////////////////////////////////////
+    virtual ~View();
 
     ////////////////////////////////////////////////////////////
     /// \brief Set the center of the view
     ///
     /// \param x X coordinate of the new center
     /// \param y Y coordinate of the new center
+    /// \param z Z coordinate of the new center
     ///
     /// \see setSize, getCenter
     ///
     ////////////////////////////////////////////////////////////
-    void setCenter(float x, float y);
+    void setCenter(float x, float y, float z = 0);
 
     ////////////////////////////////////////////////////////////
     /// \brief Set the center of the view
@@ -88,7 +95,7 @@ public :
     /// \see setSize, getCenter
     ///
     ////////////////////////////////////////////////////////////
-    void setCenter(const Vector2f& center);
+    void setCenter(const Vector3f& center);
 
     ////////////////////////////////////////////////////////////
     /// \brief Set the size of the view
@@ -160,7 +167,7 @@ public :
     /// \see getSize, setCenter
     ///
     ////////////////////////////////////////////////////////////
-    const Vector2f& getCenter() const;
+    const Vector3f& getCenter() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Get the size of the view
@@ -197,11 +204,12 @@ public :
     ///
     /// \param offsetX X coordinate of the move offset
     /// \param offsetY Y coordinate of the move offset
+    /// \param offsetZ Z coordinate of the move offset
     ///
     /// \see setCenter, rotate, zoom
     ///
     ////////////////////////////////////////////////////////////
-    void move(float offsetX, float offsetY);
+    void move(float offsetX, float offsetY, float offsetZ = 0);
 
     ////////////////////////////////////////////////////////////
     /// \brief Move the view relatively to its current position
@@ -211,7 +219,7 @@ public :
     /// \see setCenter, rotate, zoom
     ///
     ////////////////////////////////////////////////////////////
-    void move(const Vector2f& offset);
+    void move(const Vector3f& offset);
 
     ////////////////////////////////////////////////////////////
     /// \brief Rotate the view relatively to its current orientation
@@ -247,10 +255,10 @@ public :
     ///
     /// \return Projection transform defining the view
     ///
-    /// \see getInverseTransform
+    /// \see getInverseTransform, getViewTransform, getInverseViewTransform
     ///
     ////////////////////////////////////////////////////////////
-    const Transform& getTransform() const;
+    virtual const Transform& getTransform() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Get the inverse projection transform of the view
@@ -259,24 +267,58 @@ public :
     ///
     /// \return Inverse of the projection transform defining the view
     ///
-    /// \see getTransform
+    /// \see getTransform, getViewTransform, getInverseViewTransform
     ///
     ////////////////////////////////////////////////////////////
     const Transform& getInverseTransform() const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Get the view transform of the view
+    ///
+    /// This function is meant for internal use only.
+    ///
+    /// \return View transform of the view
+    ///
+    /// \see getTransform, getInverseTransform, getInverseViewTransform
+    ///
+    ////////////////////////////////////////////////////////////
+    virtual const Transform& getViewTransform() const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Get the inverse view transform of the view
+    ///
+    /// This function is meant for internal use only.
+    ///
+    /// \return Inverse of the view transform
+    ///
+    /// \see getTransform, getInverseTransform, getViewTransform
+    ///
+    ////////////////////////////////////////////////////////////
+    const Transform& getInverseViewTransform() const;
+
+protected:
+
+    ////////////////////////////////////////////////////////////
+    // Member data
+    ////////////////////////////////////////////////////////////
+    mutable Transform m_transform;               ///< Precomputed projection transform corresponding to the view
+    mutable bool      m_transformUpdated;        ///< Internal state telling if the transform needs to be updated
+    mutable Transform m_inverseTransform;        ///< Precomputed inverse projection transform corresponding to the view
+    mutable bool      m_invTransformUpdated;     ///< Internal state telling if the inverse transform needs to be updated
+    mutable Transform m_viewTransform;           ///< Precomputed view transform
+    mutable bool      m_viewTransformUpdated;    ///< Internal state telling if the view transform needs to be updated
+    mutable Transform m_inverseViewTransform;    ///< Precomputed inverse view transform
+    mutable bool      m_invViewTransformUpdated; ///< Internal state telling if the inverse view transform needs to be updated
 
 private :
 
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    Vector2f          m_center;              ///< Center of the view, in scene coordinates
-    Vector2f          m_size;                ///< Size of the view, in scene coordinates
-    float             m_rotation;            ///< Angle of rotation of the view rectangle, in degrees
-    FloatRect         m_viewport;            ///< Viewport rectangle, expressed as a factor of the render-target's size
-    mutable Transform m_transform;           ///< Precomputed projection transform corresponding to the view
-    mutable Transform m_inverseTransform;    ///< Precomputed inverse projection transform corresponding to the view
-    mutable bool      m_transformUpdated;    ///< Internal state telling if the transform needs to be updated
-    mutable bool      m_invTransformUpdated; ///< Internal state telling if the inverse transform needs to be updated
+    Vector3f  m_position; ///< Center of the view, in scene coordinates
+    Vector2f  m_size;     ///< Size of the view, in scene coordinates
+    float     m_rotation; ///< Angle of rotation of the view rectangle, in degrees
+    FloatRect m_viewport; ///< Viewport rectangle, expressed as a factor of the render-target's size
 };
 
 } // namespace sf

@@ -37,8 +37,9 @@ namespace priv
 {
 ////////////////////////////////////////////////////////////
 RenderTextureImplFBO::RenderTextureImplFBO() :
-m_frameBuffer(0),
-m_depthBuffer(0)
+m_frameBuffer  (0),
+m_depthBuffer  (0),
+m_stencilBuffer(0)
 {
 
 }
@@ -48,6 +49,13 @@ m_depthBuffer(0)
 RenderTextureImplFBO::~RenderTextureImplFBO()
 {
     ensureGlContext();
+
+    // Destroy the stencil buffer
+    if (m_stencilBuffer)
+    {
+        GLuint stencilBuffer = static_cast<GLuint>(m_stencilBuffer);
+        glCheck(glDeleteRenderbuffersEXT(1, &stencilBuffer));
+    }
 
     // Destroy the depth buffer
     if (m_depthBuffer)
@@ -81,7 +89,7 @@ bool RenderTextureImplFBO::isAvailable()
 
 
 ////////////////////////////////////////////////////////////
-bool RenderTextureImplFBO::create(unsigned int width, unsigned int height, unsigned int textureId, bool depthBuffer)
+bool RenderTextureImplFBO::create(unsigned int width, unsigned int height, unsigned int textureId, bool depthBuffer, bool stencilBuffer)
 {
     // Create the context
     m_context = new Context;
@@ -111,6 +119,22 @@ bool RenderTextureImplFBO::create(unsigned int width, unsigned int height, unsig
         glCheck(glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_depthBuffer));
         glCheck(glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, width, height));
         glCheck(glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_depthBuffer));
+    }
+
+    // Create the stencil buffer if requested
+    if (stencilBuffer)
+    {
+        GLuint stencil = 0;
+        glCheck(glGenRenderbuffersEXT(1, &stencil));
+        m_stencilBuffer = static_cast<unsigned int>(stencil);
+        if (!m_stencilBuffer)
+        {
+            err() << "Impossible to create render texture (failed to create the attached stencil buffer)" << std::endl;
+            return false;
+        }
+        glCheck(glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_stencilBuffer));
+        glCheck(glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_STENCIL_INDEX, width, height));
+        glCheck(glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_stencilBuffer));
     }
 
     // Link the texture to the frame buffer

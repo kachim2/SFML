@@ -28,6 +28,10 @@
 
 namespace sf
 {
+
+template <typename T>
+class Vector2;
+
 ////////////////////////////////////////////////////////////
 /// \brief Utility template class for manipulating
 ///        3-dimensional vectors
@@ -47,6 +51,15 @@ public :
     Vector3();
 
     ////////////////////////////////////////////////////////////
+    /// \brief Construct the vector from its x and y coordinates, setting z to 0
+    ///
+    /// \param X X coordinate
+    /// \param Y Y coordinate
+    ///
+    ////////////////////////////////////////////////////////////
+    Vector3(T X, T Y);
+
+    ////////////////////////////////////////////////////////////
     /// \brief Construct the vector from its coordinates
     ///
     /// \param X X coordinate
@@ -55,6 +68,14 @@ public :
     ///
     ////////////////////////////////////////////////////////////
     Vector3(T X, T Y, T Z);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Construct the vector by expanding a Vector2, setting z to 0
+    ///
+    /// \param vector Vector to expand from
+    ///
+    ////////////////////////////////////////////////////////////
+    Vector3(const Vector2<T>& vector);
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct the vector from another type of vector

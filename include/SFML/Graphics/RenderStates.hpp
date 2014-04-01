@@ -112,10 +112,11 @@ public :
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    BlendMode      blendMode; ///< Blending mode
-    Transform      transform; ///< Transform
-    const Texture* texture;   ///< Texture
-    const Shader*  shader;    ///< Shader
+    BlendMode      blendMode;      ///< Blending mode
+    Transform      transform;      ///< Transform
+    const Texture* texture;        ///< Texture
+    const Shader*  shader;         ///< Shader
+    bool           useVertexCache; ///< Whether to use the vertex cache or not
 };
 
 } // namespace sf

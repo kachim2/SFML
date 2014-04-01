@@ -43,6 +43,8 @@ RenderWindow::RenderWindow(VideoMode mode, const String& title, Uint32 style, co
 {
     // Don't call the base class constructor because it contains virtual function calls
     create(mode, title, style, settings);
+
+    m_clearDepth = settings.depthBits > 0;
 }
 
 
@@ -51,6 +53,8 @@ RenderWindow::RenderWindow(WindowHandle handle, const ContextSettings& settings)
 {
     // Don't call the base class constructor because it contains virtual function calls
     create(handle, settings);
+
+    m_clearDepth = settings.depthBits > 0;
 }
 
 

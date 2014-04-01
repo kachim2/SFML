@@ -5,6 +5,10 @@ set(SRCROOT ${PROJECT_SOURCE_DIR}/src/SFML/Graphics)
 # all source files
 set(SRC
     ${INCROOT}/BlendMode.hpp
+    ${INCROOT}/Box.hpp
+    ${INCROOT}/Box.inl
+    ${SRCROOT}/Camera.cpp
+    ${INCROOT}/Camera.hpp
     ${SRCROOT}/Color.cpp
     ${INCROOT}/Color.hpp
     ${INCROOT}/Export.hpp
@@ -17,6 +21,8 @@ set(SRC
     ${INCROOT}/Image.hpp
     ${SRCROOT}/ImageLoader.cpp
     ${SRCROOT}/ImageLoader.hpp
+    ${SRCROOT}/Light.cpp
+    ${INCROOT}/Light.hpp
     ${INCROOT}/PrimitiveType.hpp
     ${INCROOT}/Rect.hpp
     ${INCROOT}/Rect.inl
@@ -26,6 +32,7 @@ set(SRC
     ${INCROOT}/RenderTexture.hpp
     ${SRCROOT}/RenderTarget.cpp
     ${INCROOT}/RenderTarget.hpp
+    ${INCROOT}/RenderTarget.inl
     ${SRCROOT}/RenderWindow.cpp
     ${INCROOT}/RenderWindow.hpp
     ${SRCROOT}/Shader.cpp
@@ -47,6 +54,8 @@ source_group("" FILES ${SRC})
 
 # drawables sources
 set(DRAWABLES_SRC
+    ${SRCROOT}/Billboard.cpp
+    ${INCROOT}/Billboard.hpp
     ${INCROOT}/Drawable.hpp
     ${SRCROOT}/Shape.cpp
     ${INCROOT}/Shape.hpp
@@ -56,6 +65,16 @@ set(DRAWABLES_SRC
     ${INCROOT}/RectangleShape.hpp
     ${SRCROOT}/ConvexShape.cpp
     ${INCROOT}/ConvexShape.hpp
+    ${SRCROOT}/Polyhedron.cpp
+    ${INCROOT}/Polyhedron.hpp
+    ${SRCROOT}/SphericalPolyhedron.cpp
+    ${INCROOT}/SphericalPolyhedron.hpp
+    ${SRCROOT}/Cuboid.cpp
+    ${INCROOT}/Cuboid.hpp
+    ${SRCROOT}/ConvexPolyhedron.cpp
+    ${INCROOT}/ConvexPolyhedron.hpp
+    ${SRCROOT}/Model.cpp
+    ${INCROOT}/Model.hpp
     ${SRCROOT}/Sprite.cpp
     ${INCROOT}/Sprite.hpp
     ${SRCROOT}/Text.cpp
