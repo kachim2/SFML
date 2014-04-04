@@ -29,7 +29,7 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Shader.hpp>
 #include <SFML/Graphics/Texture.hpp>
-#include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/Graphics/VertexBuffer.hpp>
 #include <SFML/Graphics/GLCheck.hpp>
 #include <SFML/System/Err.hpp>
 
@@ -158,6 +158,63 @@ void RenderTarget::draw(const Drawable& drawable, const RenderStates& states)
     drawable.draw(*this, states);
 }
 
+////////////////////////////////////////////////////////////
+void RenderTarget::draw(const VertexBuffer& buffer, const RenderStates& states)
+{
+    // Nothing to draw?
+    if (!buffer.getVertexCount())
+        return;
+
+    if (activate(true))
+    {
+        // First set the persistent OpenGL states if it's the very first call
+        if (!m_cache.glStatesSet)
+            resetGLStates();
+
+        applyTransform(states.transform);
+
+        // Apply the view
+        if (m_cache.viewChanged)
+            applyCurrentView();
+
+        // Apply the blend mode
+        if (states.blendMode != m_cache.lastBlendMode)
+            applyBlendMode(states.blendMode);
+
+        // Apply the texture
+        Uint64 textureId = states.texture ? states.texture->m_cacheId : 0;
+        if (textureId != m_cache.lastTextureId)
+            applyTexture(states.texture);
+
+        // Apply the shader
+        if (states.shader)
+            applyShader(states.shader);
+
+        // Apply the vertex buffer
+        Uint64 vertexBufferId = buffer.m_cacheId;
+        if (vertexBufferId != m_cache.lastVertexBufferId)
+            applyVertexBuffer(&buffer);
+
+        // Setup the pointers to the vertices' components
+        glCheck(glVertexPointer(3, GL_FLOAT, sizeof(Vertex), 0));
+        glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), reinterpret_cast<void*>(3 * sizeof(float))));
+        glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), reinterpret_cast<void*>(3 * sizeof(float) + 4 * sizeof(char))));
+        glCheck(glNormalPointer(GL_FLOAT, sizeof(Vertex), reinterpret_cast<void*>(5 * sizeof(float) + 4 * sizeof(char))));
+
+        // Find the OpenGL primitive type
+        static const GLenum modes[] = {GL_POINTS, GL_LINES, GL_LINE_STRIP, GL_TRIANGLES,
+                                       GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_QUADS};
+        GLenum mode = modes[buffer.getPrimitiveType()];
+
+        // Draw the primitives
+        glCheck(glDrawArrays(mode, 0, buffer.getVertexCount()));
+
+        // Unbind the shader, if any
+        if (states.shader)
+            applyShader(NULL);
+    }
+}
+
 
 ////////////////////////////////////////////////////////////
 void RenderTarget::draw(const Vertex* vertices, unsigned int vertexCount,
@@ -212,6 +269,10 @@ void RenderTarget::draw(const Vertex* vertices, unsigned int vertexCount,
         // Apply the shader
         if (states.shader)
             applyShader(states.shader);
+
+        // Unbind any bound vertex buffer
+        if (m_cache.lastVertexBufferId)
+            applyVertexBuffer(NULL);
 
         // If we pre-transform the vertices, we must use our internal vertex cache
         if (useVertexCache)
@@ -330,6 +391,8 @@ void RenderTarget::resetGLStates()
         applyTexture(NULL);
         if (Shader::isAvailable())
             applyShader(NULL);
+        if (VertexBuffer::isAvailable())
+            applyVertexBuffer(NULL);
         m_cache.useVertexCache = false;
 
         // Set the default view
@@ -433,6 +496,15 @@ void RenderTarget::applyTexture(const Texture* texture)
 void RenderTarget::applyShader(const Shader* shader)
 {
     Shader::bind(shader);
+}
+
+
+////////////////////////////////////////////////////////////
+void RenderTarget::applyVertexBuffer(const VertexBuffer* buffer)
+{
+    VertexBuffer::bind(buffer);
+
+    m_cache.lastVertexBufferId = buffer ? buffer->m_cacheId : 0;
 }
 
 } // namespace sf

@@ -438,6 +438,18 @@ bool Shader::isAvailable()
 
 
 ////////////////////////////////////////////////////////////
+std::string Shader::getSupportedVersion()
+{
+    if (!isAvailable())
+        return std::string();
+
+    const GLubyte* version = NULL;
+    glCheck(version = glGetString(GL_SHADING_LANGUAGE_VERSION_ARB));
+    return std::string(version ? reinterpret_cast<const char*>(version) : "");
+}
+
+
+////////////////////////////////////////////////////////////
 bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCode)
 {
     ensureGlContext();

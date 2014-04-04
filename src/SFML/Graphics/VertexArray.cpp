@@ -33,6 +33,7 @@ namespace sf
 {
 ////////////////////////////////////////////////////////////
 VertexArray::VertexArray() :
+VertexContainer(this),
 m_vertices     (),
 m_primitiveType(Points)
 {
@@ -41,6 +42,7 @@ m_primitiveType(Points)
 
 ////////////////////////////////////////////////////////////
 VertexArray::VertexArray(PrimitiveType type, unsigned int vertexCount) :
+VertexContainer(this),
 m_vertices     (vertexCount),
 m_primitiveType(type)
 {

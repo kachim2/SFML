@@ -44,12 +44,28 @@ class TextureSaver
 public :
 
     ////////////////////////////////////////////////////////////
-    /// \brief Default constructor
+    /// \brief Default constructor (2D texture binding)
     ///
-    /// The current texture binding is saved.
+    /// The current 2D texture binding is saved.
     ///
     ////////////////////////////////////////////////////////////
     TextureSaver();
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Constructor (1D texture binding)
+    ///
+    /// The current 1D texture binding is saved.
+    ///
+    ////////////////////////////////////////////////////////////
+    TextureSaver(int);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Constructor (3D texture binding)
+    ///
+    /// The current 3D texture binding is saved.
+    ///
+    ////////////////////////////////////////////////////////////
+    TextureSaver(int, int);
 
     ////////////////////////////////////////////////////////////
     /// \brief Destructor
@@ -65,6 +81,8 @@ private :
     // Member data
     ////////////////////////////////////////////////////////////
     GLint m_textureBinding; ///< Texture binding to restore
+    bool  m_restore1D;      ///< Whether to restore the 1D texture binding
+    bool  m_restore2D;      ///< Whether to restore the 2D texture binding
 };
 
 } // namespace priv

@@ -35,6 +35,7 @@ namespace sf
 {
 ////////////////////////////////////////////////////////////
 Sprite::Sprite() :
+m_vertices   (Quads, 4),
 m_texture    (NULL),
 m_textureRect()
 {
@@ -43,6 +44,7 @@ m_textureRect()
 
 ////////////////////////////////////////////////////////////
 Sprite::Sprite(const Texture& texture) :
+m_vertices   (Quads, 4),
 m_texture    (NULL),
 m_textureRect()
 {
@@ -52,6 +54,7 @@ m_textureRect()
 
 ////////////////////////////////////////////////////////////
 Sprite::Sprite(const Texture& texture, const IntRect& rectangle) :
+m_vertices   (Quads, 4),
 m_texture    (NULL),
 m_textureRect()
 {
@@ -140,7 +143,7 @@ void Sprite::draw(RenderTarget& target, RenderStates states) const
     {
         states.transform *= getTransform();
         states.texture = m_texture;
-        target.draw(m_vertices, 4, Quads, states);
+        target.draw(m_vertices, states);
     }
 }
 

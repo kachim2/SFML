@@ -29,7 +29,7 @@ namespace sf
 {
 ////////////////////////////////////////////////////////////
 /// \ingroup graphics
-/// \brief Types of primitives that a sf::VertexArray can render
+/// \brief Types of primitives that a sf::VertexContainer can render
 ///
 /// Points and lines have no area, therefore their thickness
 /// will always be 1 pixel, regarldess the current transform

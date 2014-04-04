@@ -33,7 +33,7 @@
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/Rect.hpp>
-#include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/Graphics/VertexContainer.hpp>
 #include <SFML/System/String.hpp>
 #include <string>
 #include <vector>
@@ -286,14 +286,14 @@ private :
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    String              m_string;             ///< String to display
-    const Font*         m_font;               ///< Font used to display the string
-    unsigned int        m_characterSize;      ///< Base size of characters, in pixels
-    Uint32              m_style;              ///< Text style (see Style enum)
-    Color               m_color;              ///< Text color
-    mutable VertexArray m_vertices;           ///< Vertex array containing the text's geometry
-    mutable FloatRect   m_bounds;             ///< Bounding rectangle of the text (in local coordinates)
-    mutable bool        m_geometryNeedUpdate; ///< Does the geometry need to be recomputed?
+    String                  m_string;             ///< String to display
+    const Font*             m_font;               ///< Font used to display the string
+    unsigned int            m_characterSize;      ///< Base size of characters, in pixels
+    Uint32                  m_style;              ///< Text style (see Style enum)
+    Color                   m_color;              ///< Text color
+    mutable VertexContainer m_vertices;           ///< Vertex array containing the text's geometry
+    mutable FloatRect       m_bounds;             ///< Bounding rectangle of the text (in local coordinates)
+    mutable bool            m_geometryNeedUpdate; ///< Does the geometry need to be recomputed?
 };
 
 } // namespace sf

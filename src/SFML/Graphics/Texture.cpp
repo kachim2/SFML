@@ -35,6 +35,7 @@
 #include <SFML/System/Err.hpp>
 #include <cassert>
 #include <cstring>
+#include <cmath>
 
 
 namespace
@@ -56,8 +57,8 @@ namespace sf
 {
 ////////////////////////////////////////////////////////////
 Texture::Texture() :
-m_size         (0, 0),
-m_actualSize   (0, 0),
+m_size         (0, 0, 0),
+m_actualSize   (0, 0, 0),
 m_texture      (0),
 m_isSmooth     (false),
 m_isRepeated   (false),
@@ -70,8 +71,8 @@ m_cacheId      (getUniqueId())
 
 ////////////////////////////////////////////////////////////
 Texture::Texture(const Texture& copy) :
-m_size         (0, 0),
-m_actualSize   (0, 0),
+m_size         (0, 0, 0),
+m_actualSize   (0, 0, 0),
 m_texture      (0),
 m_isSmooth     (copy.m_isSmooth),
 m_isRepeated   (copy.m_isRepeated),
@@ -98,32 +99,47 @@ Texture::~Texture()
 
 
 ////////////////////////////////////////////////////////////
-bool Texture::create(unsigned int width, unsigned int height)
+bool Texture::create(unsigned int width, unsigned int height, unsigned int depth)
 {
     // Check if texture parameters are valid before creating it
-    if ((width == 0) || (height == 0))
+    if (!width)
     {
-        err() << "Failed to create texture, invalid size (" << width << "x" << height << ")" << std::endl;
+        err() << "Failed to create texture, invalid size (" << width << ")" << std::endl;
+        return false;
+    }
+
+    if (!height && depth)
+    {
+        err() << "Failed to create texture, invalid size (" << width << "x" << height << "x" << depth << ")" << std::endl;
         return false;
     }
 
     // Compute the internal texture dimensions depending on NPOT textures support
-    Vector2u actualSize(getValidSize(width), getValidSize(height));
+    Vector3u actualSize(getValidSize(width), height ? getValidSize(height) : 0, depth ? getValidSize(depth) : 0);
 
     // Check the maximum texture size
     unsigned int maxSize = getMaximumSize();
-    if ((actualSize.x > maxSize) || (actualSize.y > maxSize))
+    if ((actualSize.x > maxSize) || (actualSize.y > maxSize) || (actualSize.z > maxSize))
     {
-        err() << "Failed to create texture, its internal size is too high "
-              << "(" << actualSize.x << "x" << actualSize.y << ", "
-              << "maximum is " << maxSize << "x" << maxSize << ")"
-              << std::endl;
+        err() << "Failed to create texture, its internal size is too high ";
+        err() << "(" << actualSize.x;
+        if (actualSize.y)
+            err() << "x" << actualSize.y;
+        if (actualSize.z)
+            err() << "x" << actualSize.z;
+        err() << ", maximum is " << maxSize;
+        if (actualSize.y)
+            err() << "x" << maxSize;
+        if (actualSize.z)
+            err() << "x" << maxSize;
+        err() << ")" << std::endl;
         return false;
     }
 
     // All the validity checks passed, we can store the new texture settings
     m_size.x        = width;
     m_size.y        = height;
+    m_size.z        = depth;
     m_actualSize    = actualSize;
     m_pixelsFlipped = false;
 
@@ -137,16 +153,33 @@ bool Texture::create(unsigned int width, unsigned int height)
         m_texture = static_cast<unsigned int>(texture);
     }
 
-    // Make sure that the current texture binding will be preserved
-    priv::TextureSaver save;
+    // Make sure that all the current texture bindings will be preserved
+    priv::TextureSaver save2D;
+    priv::TextureSaver save1D(0);
+    priv::TextureSaver save3D(0, 0);
 
     // Initialize the texture
-    glCheck(glBindTexture(GL_TEXTURE_2D, m_texture));
-    glCheck(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_actualSize.x, m_actualSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
-    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
-    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
-    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
-    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
+    GLenum target = GL_TEXTURE_3D;
+
+    if (!height)
+        target = GL_TEXTURE_1D;
+    else if (!depth)
+        target = GL_TEXTURE_2D;
+
+    glCheck(glBindTexture(target, m_texture));
+    glCheck(glTexParameteri(target, GL_TEXTURE_WRAP_S, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+    glCheck(glTexParameteri(target, GL_TEXTURE_WRAP_T, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+    glCheck(glTexParameteri(target, GL_TEXTURE_WRAP_R, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+    glCheck(glTexParameteri(target, GL_TEXTURE_MAG_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
+    glCheck(glTexParameteri(target, GL_TEXTURE_MIN_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
+
+    if (!height)
+        glCheck(glTexImage1D(target, 0, GL_RGBA8, m_actualSize.x, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+    else if (!depth)
+        glCheck(glTexImage2D(target, 0, GL_RGBA8, m_actualSize.x, m_actualSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+    else
+        glCheck(glTexImage3D(target, 0, GL_RGBA8, m_actualSize.x, m_actualSize.y, m_actualSize.z, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+
     m_cacheId = getUniqueId();
 
     return true;
@@ -258,6 +291,10 @@ Image Texture::copyToImage() const
     if (!m_texture)
         return Image();
 
+    // Another easy case: non-2D texture
+    if (!m_size.y || m_size.z)
+        return Image();
+
     ensureGlContext();
 
     // Make sure that the current texture binding will be preserved
@@ -311,29 +348,83 @@ Image Texture::copyToImage() const
 
 
 ////////////////////////////////////////////////////////////
-void Texture::update(const Uint8* pixels)
+void Texture::update(const Uint8* texels)
 {
     // Update the whole texture
-    update(pixels, m_size.x, m_size.y, 0, 0);
+    if (m_size.z)
+        update(texels, m_size.x, m_size.y, m_size.z, 0, 0, 0);
+    else if (m_size.y)
+        update(texels, m_size.x, m_size.y, 0, 0);
+    else if (m_size.x)
+        update(texels, m_size.x, 0);
 }
 
 
 ////////////////////////////////////////////////////////////
-void Texture::update(const Uint8* pixels, unsigned int width, unsigned int height, unsigned int x, unsigned int y)
+void Texture::update(const Uint8* texels, unsigned int width, unsigned int x)
 {
+    assert(!m_size.y);
     assert(x + width <= m_size.x);
-    assert(y + height <= m_size.y);
 
-    if (pixels && m_texture)
+    if (texels && m_texture)
     {
         ensureGlContext();
 
-        // Make sure that the current texture binding will be preserved
+        // Make sure that the current 1D texture binding will be preserved
+        priv::TextureSaver save(0);
+
+        // Copy texels from the given array to the texture
+        glCheck(glBindTexture(GL_TEXTURE_1D, m_texture));
+        glCheck(glTexSubImage1D(GL_TEXTURE_1D, 0, x, width, GL_RGBA, GL_UNSIGNED_BYTE, texels));
+        m_pixelsFlipped = false;
+        m_cacheId = getUniqueId();
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+void Texture::update(const Uint8* texels, unsigned int width, unsigned int height, unsigned int x, unsigned int y)
+{
+    assert(m_size.y);
+    assert(!m_size.z);
+    assert(x + width <= m_size.x);
+    assert(y + height <= m_size.y);
+
+    if (texels && m_texture)
+    {
+        ensureGlContext();
+
+        // Make sure that the current 2D texture binding will be preserved
         priv::TextureSaver save;
 
-        // Copy pixels from the given array to the texture
+        // Copy texels from the given array to the texture
         glCheck(glBindTexture(GL_TEXTURE_2D, m_texture));
-        glCheck(glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+        glCheck(glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, texels));
+        m_pixelsFlipped = false;
+        m_cacheId = getUniqueId();
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+void Texture::update(const Uint8* texels, unsigned int width, unsigned int height, unsigned int depth, unsigned int x, unsigned int y, unsigned int z)
+{
+    assert(m_size.y);
+    assert(m_size.z);
+    assert(x + width <= m_size.x);
+    assert(y + height <= m_size.y);
+    assert(z + depth <= m_size.z);
+
+    if (texels && m_texture)
+    {
+        ensureGlContext();
+
+        // Make sure that the current 3D texture binding will be preserved
+        priv::TextureSaver save(0, 0);
+
+        // Copy texels from the given array to the texture
+        glCheck(glBindTexture(GL_TEXTURE_3D, m_texture));
+        glCheck(glTexSubImage3D(GL_TEXTURE_3D, 0, x, y, z, width, height, depth, GL_RGBA, GL_UNSIGNED_BYTE, texels));
         m_pixelsFlipped = false;
         m_cacheId = getUniqueId();
     }
@@ -365,6 +456,8 @@ void Texture::update(const Window& window)
 ////////////////////////////////////////////////////////////
 void Texture::update(const Window& window, unsigned int x, unsigned int y)
 {
+    assert(m_size.y);
+    assert(!m_size.z);
     assert(x + window.getSize().x <= m_size.x);
     assert(y + window.getSize().y <= m_size.y);
 
@@ -393,12 +486,33 @@ void Texture::setSmooth(bool smooth)
         {
             ensureGlContext();
 
-            // Make sure that the current texture binding will be preserved
-            priv::TextureSaver save;
+            if (m_size.z)
+            {
+                // Make sure that the current 3D texture binding will be preserved
+                priv::TextureSaver save(0, 0);
 
-            glCheck(glBindTexture(GL_TEXTURE_2D, m_texture));
-            glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
-            glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
+                glCheck(glBindTexture(GL_TEXTURE_3D, m_texture));
+                glCheck(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
+                glCheck(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
+            }
+            else if (m_size.y)
+            {
+                // Make sure that the current 2D texture binding will be preserved
+                priv::TextureSaver save;
+
+                glCheck(glBindTexture(GL_TEXTURE_2D, m_texture));
+                glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
+                glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
+            }
+            else
+            {
+                // Make sure that the current 1D texture binding will be preserved
+                priv::TextureSaver save(0);
+
+                glCheck(glBindTexture(GL_TEXTURE_1D, m_texture));
+                glCheck(glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
+                glCheck(glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, m_isSmooth ? GL_LINEAR : GL_NEAREST));
+            }
         }
     }
 }
@@ -422,12 +536,33 @@ void Texture::setRepeated(bool repeated)
         {
             ensureGlContext();
 
-            // Make sure that the current texture binding will be preserved
-            priv::TextureSaver save;
+            if (m_size.z)
+            {
+                // Make sure that the current 3D texture binding will be preserved
+                priv::TextureSaver save(0, 0);
 
-            glCheck(glBindTexture(GL_TEXTURE_2D, m_texture));
-            glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
-            glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+                glCheck(glBindTexture(GL_TEXTURE_3D, m_texture));
+                glCheck(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+                glCheck(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+            }
+            else if (m_size.y)
+            {
+                // Make sure that the current 2D texture binding will be preserved
+                priv::TextureSaver save;
+
+                glCheck(glBindTexture(GL_TEXTURE_2D, m_texture));
+                glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+                glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+            }
+            else
+            {
+                // Make sure that the current 1D texture binding will be preserved
+                priv::TextureSaver save(0);
+
+                glCheck(glBindTexture(GL_TEXTURE_1D, m_texture));
+                glCheck(glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+                glCheck(glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, m_isRepeated ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+            }
         }
     }
 }
@@ -448,7 +583,12 @@ void Texture::bind(const Texture* texture, CoordinateType coordinateType)
     if (texture && texture->m_texture)
     {
         // Bind the texture
-        glCheck(glBindTexture(GL_TEXTURE_2D, texture->m_texture));
+        if (texture->m_size.z)
+            glCheck(glBindTexture(GL_TEXTURE_3D, texture->m_texture));
+        else if (texture->m_size.y)
+            glCheck(glBindTexture(GL_TEXTURE_2D, texture->m_texture));
+        else
+            glCheck(glBindTexture(GL_TEXTURE_1D, texture->m_texture));
 
         // Check if we need to define a special texture matrix
         if ((coordinateType == Pixels) || texture->m_pixelsFlipped)
@@ -484,7 +624,9 @@ void Texture::bind(const Texture* texture, CoordinateType coordinateType)
     else
     {
         // Bind no texture
+        glCheck(glBindTexture(GL_TEXTURE_3D, 0));
         glCheck(glBindTexture(GL_TEXTURE_2D, 0));
+        glCheck(glBindTexture(GL_TEXTURE_1D, 0));
 
         // Reset the texture matrix
         glCheck(glMatrixMode(GL_TEXTURE));
@@ -493,6 +635,21 @@ void Texture::bind(const Texture* texture, CoordinateType coordinateType)
         // Go back to model-view mode (sf::RenderTarget relies on it)
         glCheck(glMatrixMode(GL_MODELVIEW));
     }
+}
+
+
+////////////////////////////////////////////////////////////
+void Texture::unbind(BindingType bindingType)
+{
+    ensureGlContext();
+
+    // Bind no texture
+    if (bindingType == Texture2D)
+        glCheck(glBindTexture(GL_TEXTURE_2D, 0));
+    else if (bindingType == Texture3D)
+        glCheck(glBindTexture(GL_TEXTURE_3D, 0));
+    else if (bindingType == Texture1D)
+        glCheck(glBindTexture(GL_TEXTURE_1D, 0));
 }
 
 
@@ -541,9 +698,8 @@ unsigned int Texture::getValidSize(unsigned int size)
     else
     {
         // If hardware doesn't support NPOT textures, we calculate the nearest power of two
-        unsigned int powerOfTwo = 1;
-        while (powerOfTwo < size)
-            powerOfTwo *= 2;
+        float exponent = std::ceil(std::log(static_cast<float>(size)) / std::log(2.f));
+        unsigned int powerOfTwo = 1 << static_cast<unsigned int>(exponent);
 
         return powerOfTwo;
     }

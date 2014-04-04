@@ -31,7 +31,7 @@
 #include <SFML/Graphics/Export.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
-#include <SFML/Graphics/Vertex.hpp>
+#include <SFML/Graphics/VertexContainer.hpp>
 #include <SFML/Graphics/Rect.hpp>
 
 
@@ -217,9 +217,9 @@ private :
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    Vertex         m_vertices[4]; ///< Vertices defining the sprite's geometry
-    const Texture* m_texture;     ///< Texture of the sprite
-    IntRect        m_textureRect; ///< Rectangle defining the area of the source texture to display
+    VertexContainer m_vertices;    ///< Vertices defining the sprite's geometry
+    const Texture*  m_texture;     ///< Texture of the sprite
+    IntRect         m_textureRect; ///< Rectangle defining the area of the source texture to display
 };
 
 } // namespace sf

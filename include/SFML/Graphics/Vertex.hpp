@@ -156,6 +156,6 @@ public :
 /// amount of pixels, their type is float because of some buggy graphics
 /// drivers that are not able to process integer coordinates correctly.
 ///
-/// \see sf::VertexArray
+/// \see sf::VertexArray, sf::VertexBuffer, sf::VertexContainer
 ///
 ////////////////////////////////////////////////////////////

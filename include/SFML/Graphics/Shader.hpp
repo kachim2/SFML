@@ -488,8 +488,20 @@ public :
     ///
     /// \return True if shaders are supported, false otherwise
     ///
+    /// \see getSupportedVersion
+    ///
     ////////////////////////////////////////////////////////////
     static bool isAvailable();
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Get the string identifying the supported GLSL version
+    ///
+    /// \return std::string containing the supported GLSL version or an empty string if unsupported
+    ///
+    /// \see isAvailable
+    ///
+    ////////////////////////////////////////////////////////////
+    static std::string getSupportedVersion();
 
 private :
 

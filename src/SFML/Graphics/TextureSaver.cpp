@@ -33,16 +33,41 @@ namespace sf
 namespace priv
 {
 ////////////////////////////////////////////////////////////
-TextureSaver::TextureSaver()
+TextureSaver::TextureSaver() :
+m_restore1D(false),
+m_restore2D(true)
 {
     glCheck(glGetIntegerv(GL_TEXTURE_BINDING_2D, &m_textureBinding));
 }
 
 
 ////////////////////////////////////////////////////////////
+TextureSaver::TextureSaver(int) :
+m_restore1D(true),
+m_restore2D(false)
+{
+    glCheck(glGetIntegerv(GL_TEXTURE_BINDING_1D, &m_textureBinding));
+}
+
+
+////////////////////////////////////////////////////////////
+TextureSaver::TextureSaver(int, int) :
+m_restore1D(false),
+m_restore2D(false)
+{
+    glCheck(glGetIntegerv(GL_TEXTURE_BINDING_3D, &m_textureBinding));
+}
+
+
+////////////////////////////////////////////////////////////
 TextureSaver::~TextureSaver()
 {
-    glCheck(glBindTexture(GL_TEXTURE_2D, m_textureBinding));
+    if (m_restore2D)
+        glCheck(glBindTexture(GL_TEXTURE_2D, m_textureBinding));
+    else if (m_restore1D)
+        glCheck(glBindTexture(GL_TEXTURE_1D, m_textureBinding));
+    else
+        glCheck(glBindTexture(GL_TEXTURE_3D, m_textureBinding));
 }
 
 } // namespace priv

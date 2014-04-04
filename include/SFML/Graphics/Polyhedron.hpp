@@ -8,7 +8,7 @@
 #include <SFML/Graphics/Export.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
-#include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/Graphics/VertexContainer.hpp>
 #include <SFML/Graphics/Box.hpp>
 #include <SFML/System/Vector3.hpp>
 
@@ -203,10 +203,10 @@ private :
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    const Texture*      m_texture;      ///< Texture of the polyhedron
-    Color               m_color;        ///< Color
-    mutable VertexArray m_vertices;     ///< Vertex array containing the geometry
-    mutable FloatBox    m_insideBounds; ///< Bounding rectangle of the inside (fill)
+    const Texture*          m_texture;      ///< Texture of the polyhedron
+    Color                   m_color;        ///< Color
+    mutable VertexContainer m_vertices;     ///< Vertex array containing the geometry
+    mutable FloatBox        m_insideBounds; ///< Bounding rectangle of the inside (fill)
 };
 
 } // namespace sf

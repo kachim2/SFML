@@ -31,6 +31,7 @@
 #include <SFML/Graphics/Export.hpp>
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Window/GlResource.hpp>
+#include <SFML/System/Vector3.hpp>
 
 
 namespace sf
@@ -56,6 +57,17 @@ public :
     {
         Normalized, ///< Texture coordinates in range [0 .. 1]
         Pixels      ///< Texture coordinates in range [0 .. size]
+    };
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Texture binding types
+    ///
+    ////////////////////////////////////////////////////////////
+    enum BindingType
+    {
+        Texture1D, ///< 1D Texture binding
+        Texture2D, ///< 2D Texture binding
+        Texture3D  ///< 3D Texture binding
     };
 
 public :
@@ -85,15 +97,21 @@ public :
     ////////////////////////////////////////////////////////////
     /// \brief Create the texture
     ///
+    /// When omitting height and/or depth, they will default to 0
+    /// which will instruct SFML to create 1D and 2D textures
+    /// respectively. If all dimensions are specified a 3D
+    /// texture is created.
+    ///
     /// If this function fails, the texture is left unchanged.
     ///
     /// \param width  Width of the texture
     /// \param height Height of the texture
+    /// \param depth  Depth of the texture
     ///
     /// \return True if creation was successful
     ///
     ////////////////////////////////////////////////////////////
-    bool create(unsigned int width, unsigned int height);
+    bool create(unsigned int width, unsigned int height = 0, unsigned int depth = 0);
 
     ////////////////////////////////////////////////////////////
     /// \brief Load the texture from a file on disk
@@ -237,44 +255,87 @@ public :
     Image copyToImage() const;
 
     ////////////////////////////////////////////////////////////
-    /// \brief Update the whole texture from an array of pixels
+    /// \brief Update the whole texture from an array of texels
     ///
-    /// The \a pixel array is assumed to have the same size as
-    /// the \a area rectangle, and to contain 32-bits RGBA pixels.
+    /// The \a texels array is assumed to contain 32-bits RGBA pixels.
     ///
-    /// No additional check is performed on the size of the pixel
+    /// No additional check is performed on the size of the texel
     /// array, passing invalid arguments will lead to an undefined
     /// behaviour.
     ///
-    /// This function does nothing if \a pixels is null or if the
+    /// This function does nothing if \a texels is null or if the
     /// texture was not previously created.
     ///
-    /// \param pixels Array of pixels to copy to the texture
+    /// \param texels Array of texels to copy to the texture
     ///
     ////////////////////////////////////////////////////////////
-    void update(const Uint8* pixels);
+    void update(const Uint8* texels);
 
     ////////////////////////////////////////////////////////////
-    /// \brief Update a part of the texture from an array of pixels
+    /// \brief Update a part of the texture from a 1D array of texels
     ///
-    /// The size of the \a pixel array must match the \a width and
-    /// \a height arguments, and it must contain 32-bits RGBA pixels.
+    /// The size of the \a texels array must match the \a width
+    /// argument, and it must contain 32-bits RGBA texels.
     ///
-    /// No additional check is performed on the size of the pixel
+    /// No additional check is performed on the size of the texel
     /// array or the bounds of the area to update, passing invalid
     /// arguments will lead to an undefined behaviour.
     ///
-    /// This function does nothing if \a pixels is null or if the
+    /// This function does nothing if \a texels is null or if the
     /// texture was not previously created.
     ///
-    /// \param pixels Array of pixels to copy to the texture
-    /// \param width  Width of the pixel region contained in \a pixels
-    /// \param height Height of the pixel region contained in \a pixels
+    /// \param texels Array of texels to copy to the texture
+    /// \param width  Width of the texel region contained in \a texels
     /// \param x      X offset in the texture where to copy the source pixels
-    /// \param y      Y offset in the texture where to copy the source pixels
     ///
     ////////////////////////////////////////////////////////////
-    void update(const Uint8* pixels, unsigned int width, unsigned int height, unsigned int x, unsigned int y);
+    void update(const Uint8* texels, unsigned int width, unsigned int x);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Update a part of the texture from a 2D array of texels
+    ///
+    /// The size of the \a texels array must match the \a width and
+    /// \a height arguments, and it must contain 32-bits RGBA texels.
+    ///
+    /// No additional check is performed on the size of the texel
+    /// array or the bounds of the area to update, passing invalid
+    /// arguments will lead to an undefined behaviour.
+    ///
+    /// This function does nothing if \a texels is null or if the
+    /// texture was not previously created.
+    ///
+    /// \param texels Array of texels to copy to the texture
+    /// \param width  Width of the texel region contained in \a texels
+    /// \param height Height of the texel region contained in \a texels
+    /// \param x      X offset in the texture where to copy the source texels
+    /// \param y      Y offset in the texture where to copy the source texels
+    ///
+    ////////////////////////////////////////////////////////////
+    void update(const Uint8* texels, unsigned int width, unsigned int height, unsigned int x, unsigned int y);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Update a part of the texture from a 3D array of texels
+    ///
+    /// The size of the \a texels array must match the \a width, \a height
+    /// and \a depth arguments, and it must contain 32-bits RGBA texels.
+    ///
+    /// No additional check is performed on the size of the texel
+    /// array or the bounds of the area to update, passing invalid
+    /// arguments will lead to an undefined behaviour.
+    ///
+    /// This function does nothing if \a texels is null or if the
+    /// texture was not previously created.
+    ///
+    /// \param texels Array of texels to copy to the texture
+    /// \param width  Width of the texel region contained in \a texels
+    /// \param height Height of the texel region contained in \a texels
+    /// \param depth  Depth of the texel region contained in \a texels
+    /// \param x      X offset in the texture where to copy the source texels
+    /// \param y      Y offset in the texture where to copy the source texels
+    /// \param z      Z offset in the texture where to copy the source texels
+    ///
+    ////////////////////////////////////////////////////////////
+    void update(const Uint8* texels, unsigned int width, unsigned int height, unsigned int depth, unsigned int x, unsigned int y, unsigned int z);
 
     ////////////////////////////////////////////////////////////
     /// \brief Update the texture from an image
@@ -447,11 +508,37 @@ public :
     /// coordinates more intuitive for the high-level API, users don't need
     /// to compute normalized values.
     ///
+    /// This unbinds all texture bindings when null is passed.
+    /// If selective unbinding of a specific texture binding is
+    /// required, use unbind instead.
+    ///
     /// \param texture Pointer to the texture to bind, can be null to use no texture
     /// \param coordinateType Type of texture coordinates to use
     ///
+    /// \see unbind
+    ///
     ////////////////////////////////////////////////////////////
     static void bind(const Texture* texture, CoordinateType coordinateType = Normalized);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Unbind a texture binding
+    ///
+    /// This function is not part of the graphics API, it mustn't be
+    /// used when drawing SFML entities. It must be used only if you
+    /// mix sf::Texture with OpenGL code.
+    ///
+    /// The \a bindingType argument controls which texture binding
+    /// to unbind. This is useful in situations where multiple
+    /// texture bindings are in use simultaneously and one of
+    /// them has to be selectively unbound. Calling bind with null
+    /// would result in all bindings being unbound.
+    ///
+    /// \param bindingType Type of binding to unbind
+    ///
+    /// \see bind
+    ///
+    ////////////////////////////////////////////////////////////
+    static void unbind(BindingType bindingType = Texture2D);
 
     ////////////////////////////////////////////////////////////
     /// \brief Get the maximum texture size allowed
@@ -488,8 +575,8 @@ private :
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    Vector2u     m_size;          ///< Public texture size
-    Vector2u     m_actualSize;    ///< Actual texture size (can be greater than public size because of padding)
+    Vector3u     m_size;          ///< Public texture size
+    Vector3u     m_actualSize;    ///< Actual texture size (can be greater than public size because of padding)
     unsigned int m_texture;       ///< Internal texture identifier
     bool         m_isSmooth;      ///< Status of the smooth filter
     bool         m_isRepeated;    ///< Is the texture in repeat mode?

@@ -43,6 +43,7 @@
 namespace sf
 {
 class Drawable;
+class VertexBuffer;
 
 ////////////////////////////////////////////////////////////
 /// \brief Base class for all render targets (window, texture, ...)
@@ -250,6 +251,15 @@ public :
     void draw(const Drawable& drawable, const RenderStates& states = RenderStates::Default);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Draw a vertex buffer to the render-target
+    ///
+    /// \param buffer Vertex buffer to draw
+    /// \param states Render states to use for drawing
+    ///
+    ////////////////////////////////////////////////////////////
+    void draw(const VertexBuffer& buffer, const RenderStates& states = RenderStates::Default);
+
+    ////////////////////////////////////////////////////////////
     /// \brief Draw primitives defined by an array of vertices
     ///
     /// \param vertices    Pointer to the vertices
@@ -400,6 +410,14 @@ private:
     void applyShader(const Shader* shader);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Apply a new vertex buffer
+    ///
+    /// \param buffer Vertex buffer to apply
+    ///
+    ////////////////////////////////////////////////////////////
+    void applyVertexBuffer(const VertexBuffer* buffer);
+
+    ////////////////////////////////////////////////////////////
     /// \brief Activate the target for rendering
     ///
     /// This function must be implemented by derived classes to make
@@ -421,11 +439,12 @@ private:
     {
         enum {VertexCacheSize = 4};
 
-        bool      glStatesSet;    ///< Are our internal GL states set yet?
-        bool      viewChanged;    ///< Has the current view changed since last draw?
-        BlendMode lastBlendMode;  ///< Cached blending mode
-        Uint64    lastTextureId;  ///< Cached texture
-        bool      useVertexCache; ///< Did we previously use the vertex cache?
+        bool      glStatesSet;        ///< Are our internal GL states set yet?
+        bool      viewChanged;        ///< Has the current view changed since last draw?
+        BlendMode lastBlendMode;      ///< Cached blending mode
+        Uint64    lastTextureId;      ///< Cached texture
+        Uint64    lastVertexBufferId; ///< Cached vertex buffer
+        bool      useVertexCache;     ///< Did we previously use the vertex cache?
         Vertex    vertexCache[VertexCacheSize]; ///< Pre-transformed vertices cache
     };
 
