@@ -218,6 +218,8 @@ FloatBox VertexBuffer::getBounds() const
 ////////////////////////////////////////////////////////////
 void* VertexBuffer::getPointer()
 {
+    m_needUpload = true;
+
     return &m_vertices[0];
 }
 
