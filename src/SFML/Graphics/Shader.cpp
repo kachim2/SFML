@@ -97,7 +97,9 @@ Shader::Shader() :
 m_shaderProgram (0),
 m_currentTexture(-1),
 m_textures      (),
-m_params        ()
+m_params        (),
+m_attributes    (),
+m_warnMissing   (true)
 {
 }
 
@@ -219,7 +221,109 @@ bool Shader::loadFromStream(InputStream& vertexShaderStream, InputStream& fragme
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, float x)
+void Shader::setParameter(const std::string& name, int x) const
+{
+    if (m_shaderProgram)
+    {
+        ensureGlContext();
+
+        // Enable program
+        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+        glCheck(glUseProgramObjectARB(m_shaderProgram));
+
+        // Get parameter location and assign it new values
+        GLint location = getParamLocation(name);
+        if (location != -1)
+            glCheck(glUniform1iARB(location, x));
+
+        // Disable program
+        glCheck(glUseProgramObjectARB(program));
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+void Shader::setParameter(const std::string& name, int x, int y) const
+{
+    if (m_shaderProgram)
+    {
+        ensureGlContext();
+
+        // Enable program
+        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+        glCheck(glUseProgramObjectARB(m_shaderProgram));
+
+        // Get parameter location and assign it new values
+        GLint location = getParamLocation(name);
+        if (location != -1)
+            glCheck(glUniform2iARB(location, x, y));
+
+        // Disable program
+        glCheck(glUseProgramObjectARB(program));
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+void Shader::setParameter(const std::string& name, int x, int y, int z) const
+{
+    if (m_shaderProgram)
+    {
+        ensureGlContext();
+
+        // Enable program
+        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+        glCheck(glUseProgramObjectARB(m_shaderProgram));
+
+        // Get parameter location and assign it new values
+        GLint location = getParamLocation(name);
+        if (location != -1)
+            glCheck(glUniform3iARB(location, x, y, z));
+
+        // Disable program
+        glCheck(glUseProgramObjectARB(program));
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+void Shader::setParameter(const std::string& name, int x, int y, int z, int w) const
+{
+    if (m_shaderProgram)
+    {
+        ensureGlContext();
+
+        // Enable program
+        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+        glCheck(glUseProgramObjectARB(m_shaderProgram));
+
+        // Get parameter location and assign it new values
+        GLint location = getParamLocation(name);
+        if (location != -1)
+            glCheck(glUniform4iARB(location, x, y, z, w));
+
+        // Disable program
+        glCheck(glUseProgramObjectARB(program));
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+void Shader::setParameter(const std::string& name, const Vector2i& v) const
+{
+    setParameter(name, v.x, v.y);
+}
+
+
+////////////////////////////////////////////////////////////
+void Shader::setParameter(const std::string& name, const Vector3i& v) const
+{
+    setParameter(name, v.x, v.y, v.z);
+}
+
+
+////////////////////////////////////////////////////////////
+void Shader::setParameter(const std::string& name, float x) const
 {
     if (m_shaderProgram)
     {
@@ -241,7 +345,7 @@ void Shader::setParameter(const std::string& name, float x)
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, float x, float y)
+void Shader::setParameter(const std::string& name, float x, float y) const
 {
     if (m_shaderProgram)
     {
@@ -263,7 +367,7 @@ void Shader::setParameter(const std::string& name, float x, float y)
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, float x, float y, float z)
+void Shader::setParameter(const std::string& name, float x, float y, float z) const
 {
     if (m_shaderProgram)
     {
@@ -285,7 +389,7 @@ void Shader::setParameter(const std::string& name, float x, float y, float z)
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, float x, float y, float z, float w)
+void Shader::setParameter(const std::string& name, float x, float y, float z, float w) const
 {
     if (m_shaderProgram)
     {
@@ -307,28 +411,28 @@ void Shader::setParameter(const std::string& name, float x, float y, float z, fl
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, const Vector2f& v)
+void Shader::setParameter(const std::string& name, const Vector2f& v) const
 {
     setParameter(name, v.x, v.y);
 }
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, const Vector3f& v)
+void Shader::setParameter(const std::string& name, const Vector3f& v) const
 {
     setParameter(name, v.x, v.y, v.z);
 }
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, const Color& color)
+void Shader::setParameter(const std::string& name, const Color& color) const
 {
     setParameter(name, color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
 }
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, const sf::Transform& transform)
+void Shader::setParameter(const std::string& name, const sf::Transform& transform) const
 {
     if (m_shaderProgram)
     {
@@ -350,7 +454,7 @@ void Shader::setParameter(const std::string& name, const sf::Transform& transfor
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, const Texture& texture)
+void Shader::setParameter(const std::string& name, const Texture& texture) const
 {
     if (m_shaderProgram)
     {
@@ -385,7 +489,7 @@ void Shader::setParameter(const std::string& name, const Texture& texture)
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, CurrentTextureType)
+void Shader::setParameter(const std::string& name, CurrentTextureType) const
 {
     if (m_shaderProgram)
     {
@@ -394,6 +498,46 @@ void Shader::setParameter(const std::string& name, CurrentTextureType)
         // Find the location of the variable in the shader
         m_currentTexture = getParamLocation(name);
     }
+}
+
+
+////////////////////////////////////////////////////////////
+int Shader::getVertexAttributeLocation(const std::string& name) const
+{
+    // Check the cache
+    LocationTable::const_iterator it = m_attributes.find(name);
+    if (it != m_attributes.end())
+    {
+        // Already in cache, return it
+        return it->second;
+    }
+    else
+    {
+        // Not in cache, request the location from OpenGL
+        int location = glGetAttribLocationARB(m_shaderProgram, name.c_str());
+        if (location != -1)
+        {
+            // Location found: add it to the cache
+            m_attributes.insert(std::make_pair(name, location));
+        }
+        else
+        {
+            // Error: location not found
+            if (m_warnMissing)
+                err() << "Vertex attribute \"" << name << "\" not found in shader" << std::endl;
+        }
+
+        return location;
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+bool Shader::warnMissing(bool warn) const
+{
+    bool previousWarn = m_warnMissing;
+    m_warnMissing = warn;
+    return previousWarn;
 }
 
 
@@ -440,12 +584,45 @@ bool Shader::isAvailable()
 ////////////////////////////////////////////////////////////
 std::string Shader::getSupportedVersion()
 {
-    if (!isAvailable())
-        return std::string();
+    static bool checked = false;
+    static std::string supportedVersion;
 
-    const GLubyte* version = NULL;
-    glCheck(version = glGetString(GL_SHADING_LANGUAGE_VERSION_ARB));
-    return std::string(version ? reinterpret_cast<const char*>(version) : "");
+    if (!checked)
+    {
+        checked = true;
+
+        if (isAvailable())
+        {
+            const GLubyte* version = NULL;
+            glCheck(version = glGetString(GL_SHADING_LANGUAGE_VERSION_ARB));
+
+            if (!version)
+                return supportedVersion;
+
+            std::string versionString(reinterpret_cast<const char*>(version));
+
+            // Get rid of OpenGL ES GLSL declaration
+            // (but keep a remaining ES prefix so one can check for it)
+            if (versionString.find("OpenGL ES GLSL ") != std::string::npos)
+                versionString = versionString.substr(15);
+
+            supportedVersion = versionString;
+        }
+    }
+
+    return supportedVersion;
+}
+
+
+////////////////////////////////////////////////////////////
+unsigned int Shader::getMaximumUniformComponents()
+{
+    if (!isAvailable())
+        return 0;
+
+    GLint maxVertexUniformComponents = 0;
+    glCheck(glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, &maxVertexUniformComponents));
+    return maxVertexUniformComponents;
 }
 
 
@@ -470,6 +647,7 @@ bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCod
     m_currentTexture = -1;
     m_textures.clear();
     m_params.clear();
+    m_attributes.clear();
 
     // Create the program
     m_shaderProgram = glCreateProgramObjectARB();
@@ -574,10 +752,10 @@ void Shader::bindTextures() const
 
 
 ////////////////////////////////////////////////////////////
-int Shader::getParamLocation(const std::string& name)
+int Shader::getParamLocation(const std::string& name) const
 {
     // Check the cache
-    ParamTable::const_iterator it = m_params.find(name);
+    LocationTable::const_iterator it = m_params.find(name);
     if (it != m_params.end())
     {
         // Already in cache, return it
@@ -595,7 +773,8 @@ int Shader::getParamLocation(const std::string& name)
         else
         {
             // Error: location not found
-            err() << "Parameter \"" << name << "\" not found in shader" << std::endl;
+            if (m_warnMissing)
+                err() << "Uniform \"" << name << "\" not found in shader" << std::endl;
         }
 
         return location;

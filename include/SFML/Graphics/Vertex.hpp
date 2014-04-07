@@ -145,11 +145,13 @@ public :
 ///     sf::Vertex(sf::Vector3f(  0,   0, 0), sf::Color::Red, sf::Vector2f( 0,  0)),
 ///     sf::Vertex(sf::Vector3f(  0, 100, 0), sf::Color::Red, sf::Vector2f( 0, 10)),
 ///     sf::Vertex(sf::Vector3f(100, 100, 0), sf::Color::Red, sf::Vector2f(10, 10)),
+///     sf::Vertex(sf::Vector3f(  0,   0, 0), sf::Color::Red, sf::Vector2f( 0,  0)),
+///     sf::Vertex(sf::Vector3f(100, 100, 0), sf::Color::Red, sf::Vector2f(10, 10)),
 ///     sf::Vertex(sf::Vector3f(100,   0, 0), sf::Color::Red, sf::Vector2f(10,  0))
 /// };
 ///
 /// // draw it
-/// window.draw(vertices, 4, sf::Quads);
+/// window.draw(vertices, 6, sf::Triangles);
 /// \endcode
 ///
 /// Note: although texture coordinates are supposed to be an integer

@@ -7,9 +7,11 @@
 ////////////////////////////////////////////////////////////
 #include <SFML/Graphics/Export.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Shader.hpp>
 #include <SFML/Window/GlResource.hpp>
 #include <SFML/System/Vector3.hpp>
 #include <vector>
+#include <set>
 
 
 namespace sf
@@ -28,8 +30,8 @@ public :
     /// \brief Default constructor
     ///
     /// Creates a default positional light source with
-    /// position (0, 0, 0), black ambient color and white
-    /// diffuse and specular colors.
+    /// position (0, 0, 0), white color, 0.f ambient intensity,
+    /// 1.f diffuse intensity and 1.f specular intensity.
     ///
     ////////////////////////////////////////////////////////////
     Light();
@@ -151,70 +153,102 @@ public :
     const Vector3f& getDirection() const;
 
     ////////////////////////////////////////////////////////////
-    /// \brief Set the ambient color of this light source
+    /// \brief Set the color of the light produced by this light source
     ///
-    /// The default ambient color of a light source is sf::Color::Black.
+    /// The default color of the light produced by a
+    /// light source is sf::Color::White.
     ///
-    /// \param color The new ambient color of this light source
+    /// \param color The new color of the light produced by this light source
     ///
-    /// \see getAmbientColor
+    /// \see getColor
     ///
     ////////////////////////////////////////////////////////////
-    void setAmbientColor(const Color& color);
+    void setColor(const Color& color);
 
     ////////////////////////////////////////////////////////////
-    /// \brief Get the ambient color of this light source
+    /// \brief Get the color of the light produced by this light source
     ///
-    /// \return The ambient color of this light source
+    /// \return The color of the light produced by this light source
     ///
-    /// \see setAmbientColor
+    /// \see setColor
     ///
     ////////////////////////////////////////////////////////////
-    const Color& getAmbientColor() const;
+    const Color& getColor() const;
 
     ////////////////////////////////////////////////////////////
-    /// \brief Set the diffuse color of this light source
+    /// \brief Set the ambient intensity of this light source
     ///
-    /// The default diffuse color of a light source is sf::Color::White.
+    /// The default ambient intensity of a light source is 0.f
+    /// meaning that when a surface is not illuminated by the light,
+    /// it will appear black.
     ///
-    /// \param color The new diffuse color of this light source
+    /// \param intensity The new ambient intensity of this light source
     ///
-    /// \see getDiffuseColor
+    /// \see getAmbientIntensity
     ///
     ////////////////////////////////////////////////////////////
-    void setDiffuseColor(const Color& color);
+    void setAmbientIntensity(float intensity);
 
     ////////////////////////////////////////////////////////////
-    /// \brief Get the diffuse color of this light source
+    /// \brief Get the ambient intensity of this light source
     ///
-    /// \return The diffuse color of this light source
+    /// \return The ambient intensity of this light source
     ///
-    /// \see setDiffuseColor
+    /// \see setAmbientIntensity
     ///
     ////////////////////////////////////////////////////////////
-    const Color& getDiffuseColor() const;
+    float getAmbientIntensity() const;
 
     ////////////////////////////////////////////////////////////
-    /// \brief Set the specular color of this light source
+    /// \brief Set the diffuse intensity of this light source
     ///
-    /// The default specular color of a light source is sf::Color::White.
+    /// The default diffuse intensity of a light source is 1.f
+    /// meaning that when a surface is fully illuminated by the light,
+    /// it will appear as the color/texture it would have if it
+    /// was not lit at all.
     ///
-    /// \param color The new specular color of this light source
+    /// \param intensity The new diffuse intensity of this light source
     ///
-    /// \see getSpecularColor
+    /// \see getDiffuseIntensity
     ///
     ////////////////////////////////////////////////////////////
-    void setSpecularColor(const Color& color);
+    void setDiffuseIntensity(float intensity);
 
     ////////////////////////////////////////////////////////////
-    /// \brief Get the specular color of this light source
+    /// \brief Get the diffuse intensity of this light source
     ///
-    /// \return The specular color of this light source
+    /// \return The diffuse intensity of this light source
     ///
-    /// \see setSpecularColor
+    /// \see setDiffuseIntensity
     ///
     ////////////////////////////////////////////////////////////
-    const Color& getSpecularColor() const;
+    float getDiffuseIntensity() const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Set the specular intensity of this light source
+    ///
+    /// The default specular intensity of a light source is 1.f
+    /// meaning that when a surface is viewed from the same direction
+    /// as the incident light ray (the light is shining at the surface
+    /// in the same direction as you are looking at the surface),
+    /// a specular highlight will appear on the surface.
+    ///
+    /// \param intensity The new specular intensity of this light source
+    ///
+    /// \see getSpecularIntensity
+    ///
+    ////////////////////////////////////////////////////////////
+    void setSpecularIntensity(float intensity);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Get the specular intensity of this light source
+    ///
+    /// \return The specular intensity of this light source
+    ///
+    /// \see setSpecularIntensity
+    ///
+    ////////////////////////////////////////////////////////////
+    float getSpecularIntensity() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Set the constant attenuation of this light source
@@ -394,6 +428,16 @@ public :
     void disable();
 
     ////////////////////////////////////////////////////////////
+    /// \brief Check whether this light is enabled
+    ///
+    /// \return true if this light is enabled
+    ///
+    /// \see enable, disable
+    ///
+    ////////////////////////////////////////////////////////////
+    bool isEnabled();
+
+    ////////////////////////////////////////////////////////////
     /// \brief Get the maximum number of lights supported
     ///
     /// This maximum number of lights supported is defined by
@@ -424,7 +468,27 @@ public :
     ////////////////////////////////////////////////////////////
     static void disableLighting();
 
+    ////////////////////////////////////////////////////////////
+    /// \brief Check whether lighting is enabled
+    ///
+    /// \return true if lighting is enabled
+    ///
+    /// \see enableLighting, disableLighting
+    ///
+    ////////////////////////////////////////////////////////////
+    static bool isLightingEnabled();
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Check whether shader lighting is supported
+    ///
+    /// \return true if shader lighting is supported
+    ///
+    ////////////////////////////////////////////////////////////
+    static bool hasShaderLighting();
+
 private :
+
+    friend class RenderTarget;
 
     ////////////////////////////////////////////////////////////
     /// \brief Get a free identifier for this light
@@ -433,21 +497,41 @@ private :
     void getId();
 
     ////////////////////////////////////////////////////////////
+    /// \brief Add the lighting data of this light to the given shader
+    ///
+    /// \param shader Shader to add the lighting data to
+    ///
+    ////////////////////////////////////////////////////////////
+    void addToShader(const Shader& shader) const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Get the set of lights that are currently enabled
+    ///
+    /// \return std::set containing the lights that are currently enabled
+    ///
+    ////////////////////////////////////////////////////////////
+    static const std::set<const Light*>& getEnabledLights();
+
+    ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    int      m_light;                ///< Internal light identifier
-    Vector3f m_position;             ///< Position/direction of the light
-    bool     m_directional;          ///< Whether the light is a directional light
-    Color    m_ambientColor;         ///< Ambient color of the light
-    Color    m_diffuseColor;         ///< Diffuse color of the light
-    Color    m_specularColor;        ///< Specular color of the light
-    float    m_constantAttenuation;  ///< Constant attenuation used during lighting computations
-    float    m_linearAttenuation;    ///< Linear attenuation used during lighting computations
-    float    m_quadraticAttenuation; ///< Quadratic attenuation used during lighting computations
-    bool     m_enabled;              ///< Whether the light is enabled
+    int      m_light;                    ///< Internal light identifier
+    Vector3f m_position;                 ///< Position/direction of the light
+    bool     m_directional;              ///< Whether the light is a directional light
+    Color    m_color;                    ///< Color of the light
+    float    m_ambientIntensity;         ///< Ambient intensity of the light
+    float    m_diffuseIntensity;         ///< Diffuse intensity of the light
+    float    m_specularIntensity;        ///< Specular intensity of the light
+    float    m_constantAttenuation;      ///< Constant attenuation used during lighting computations
+    float    m_linearAttenuation;        ///< Linear attenuation used during lighting computations
+    float    m_quadraticAttenuation;     ///< Quadratic attenuation used during lighting computations
+    bool     m_enabled;                  ///< Whether the light is enabled
+    mutable std::string m_shaderElement; ///< String containing the element used to access lighting data in a shader
 
-    static std::vector<bool> m_usedIds;      ///< std::vector tracking which light identifiers are in use
-    static Mutex             m_usedIdsMutex; ///< Mutex guarding the used ids vector
+    static Mutex                  m_lightMutex;      ///< Mutex guarding the static light state
+    static std::vector<bool>      m_usedIds;         ///< std::vector tracking which light identifiers are in use
+    static std::set<const Light*> m_enabledLights;   ///< std::set tracking which lights are enabled
+    static bool                   m_lightingEnabled; ///< Whether lighting is enabled
 };
 
 } // namespace sf

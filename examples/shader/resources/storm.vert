@@ -1,7 +1,24 @@
+#version 130
+
+// Uniforms
+uniform mat4 sf_ModelMatrix;
+uniform mat4 sf_ViewMatrix;
+uniform mat4 sf_ProjectionMatrix;
+uniform mat4 sf_TextureMatrix;
+uniform int sf_TextureEnabled;
 uniform vec2 storm_position;
 uniform float storm_total_radius;
 uniform float storm_inner_radius;
 uniform sampler1D random_texture;
+
+// Vertex attributes
+in vec3 sf_Vertex;
+in vec4 sf_Color;
+in vec2 sf_MultiTexCoord0;
+
+// Vertex shader outputs
+out vec4 sf_FrontColor;
+out vec2 sf_TexCoord0;
 
 float rand(float index)
 {
@@ -10,7 +27,7 @@ float rand(float index)
 
 void main()
 {
-    vec4 vertex = gl_ModelViewMatrix * gl_Vertex;
+    vec4 vertex = sf_ModelMatrix * vec4(sf_Vertex, 1.0);
     vec2 offset = vertex.xy - storm_position;
 
     float angle = 0.0;
@@ -27,8 +44,13 @@ void main()
         float push_distance = storm_inner_radius + len / storm_total_radius * (storm_total_radius - storm_inner_radius);
         vertex.xy = storm_position + normalize(offset) * push_distance * (0.8 + random_number * 0.2 * len / storm_total_radius);
     }
+    // Vertex position
+    gl_Position = sf_ProjectionMatrix * sf_ViewMatrix * vertex;
 
-	gl_Position = gl_ProjectionMatrix * vertex;
-	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
-	gl_FrontColor = gl_Color;
+    // Vertex color
+    sf_FrontColor = sf_Color;
+
+    // Texture data
+    if (sf_TextureEnabled == 1)
+        sf_TexCoord0 = (sf_TextureMatrix * vec4(sf_MultiTexCoord0, 0.0, 1.0)).st;
 }

@@ -234,7 +234,9 @@ int main()
 
     // Create a light to illuminate our scene
     sf::Light light;
-    light.setAmbientColor(sf::Color(10, 10, 10));
+    light.setColor(sf::Color::White);
+    light.setAmbientIntensity(0.1f);
+    light.setDiffuseIntensity(1.0f);
     light.setLinearAttenuation(0.002f);
     light.setQuadraticAttenuation(0.0005f);
     light.enable();

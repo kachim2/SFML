@@ -432,6 +432,17 @@ private:
     virtual bool activate(bool active) = 0;
 
     ////////////////////////////////////////////////////////////
+    /// \brief Try to set up the non-legacy rendering pipeline if available
+    ///
+    /// This function checks the GLSL version to see if version
+    /// 1.30 or greater is supported. If that is the case, it will
+    /// set up the default shader used for rendering that will
+    /// emulate the legacy pipeline using the non-legacy OpenGL API.
+    ///
+    ////////////////////////////////////////////////////////////
+    void setupNonLegacyPipeline();
+
+    ////////////////////////////////////////////////////////////
     /// \brief Render states cache
     ///
     ////////////////////////////////////////////////////////////
@@ -451,10 +462,13 @@ private:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    View        m_defaultView; ///< Default view
-    View*       m_view;        ///< Current view
-    StatesCache m_cache;       ///< Render states cache
-    bool        m_depthTest;   ///< Whether depth testing is enabled
+    View          m_defaultView;            ///< Default view
+    View*         m_view;                   ///< Current view
+    StatesCache   m_cache;                  ///< Render states cache
+    bool          m_depthTest;              ///< Whether depth testing is enabled
+    Shader*       m_defaultShader;          ///< Default non-legacy shader, only created if supported
+    const Shader* m_currentNonLegacyShader; ///< Used during a draw call to set uniforms of the target shader
+    const Shader* m_lastNonLegacyShader;    ///< Used during a draw call to check if shader changed since the last draw
 };
 
 #include <SFML/Graphics/RenderTarget.inl>

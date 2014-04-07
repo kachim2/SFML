@@ -30,9 +30,8 @@ public :
         m_sprite.setTexture(m_texture);
 
         // Load the shader
-        if (!m_shader.loadFromFile("resources/pixelate.frag", sf::Shader::Fragment))
+        if (!m_shader.loadFromFile("resources/pixelate.vert", "resources/pixelate.frag"))
             return false;
-        m_shader.setParameter("texture", sf::Shader::CurrentTexture);
 
         return true;
     }
@@ -225,9 +224,8 @@ public :
         }
 
         // Load the shader
-        if (!m_shader.loadFromFile("resources/edge.frag", sf::Shader::Fragment))
+        if (!m_shader.loadFromFile("resources/edge.vert", "resources/edge.frag"))
             return false;
-        m_shader.setParameter("texture", sf::Shader::CurrentTexture);
 
         return true;
     }

@@ -36,6 +36,9 @@ sfml_set_option(SFML_BUILD_EXAMPLES FALSE BOOL "TRUE to build the SFML examples,
 # add an option for building the API documentation
 sfml_set_option(SFML_BUILD_DOC FALSE BOOL "TRUE to generate the API documentation, FALSE to ignore it")
 
+# add an option for forcing usage of legacy OpenGL
+sfml_set_option(SFML_LEGACY_GL FALSE BOOL "TRUE to force SFML to use legacy OpenGL, FALSE to let SFML automatically use non-legacy OpenGL if supported")
+
 # Mac OS X specific options
 if(SFML_OS_MACOSX)
     # add an option to build frameworks instead of dylibs (release only)
@@ -51,6 +54,11 @@ endif()
 # define SFML_STATIC if the build type is not set to 'shared'
 if(NOT BUILD_SHARED_LIBS)
     add_definitions(-DSFML_STATIC)
+endif()
+
+# define SFML_LEGACY_GL if requested
+if(SFML_LEGACY_GL)
+    add_definitions(-DSFML_LEGACY_GL)
 endif()
 
 # remove SL security warnings with Visual C++

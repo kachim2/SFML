@@ -220,6 +220,138 @@ public :
     bool loadFromStream(InputStream& vertexShaderStream, InputStream& fragmentShaderStream);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Change a int parameter of the shader
+    ///
+    /// \a name is the name of the variable to change in the shader.
+    /// The corresponding parameter in the shader must be a int
+    /// (int GLSL type).
+    ///
+    /// Example:
+    /// \code
+    /// uniform int myparam; // this is the variable in the shader
+    /// \endcode
+    /// \code
+    /// shader.setParameter("myparam", 5);
+    /// \endcode
+    ///
+    /// \param name Name of the parameter in the shader
+    /// \param x    Value to assign
+    ///
+    ////////////////////////////////////////////////////////////
+    void setParameter(const std::string& name, int x) const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Change a 2-components int vector parameter of the shader
+    ///
+    /// \a name is the name of the variable to change in the shader.
+    /// The corresponding parameter in the shader must be a 2x1 int vector
+    /// (ivec2 GLSL type).
+    ///
+    /// Example:
+    /// \code
+    /// uniform ivec2 myparam; // this is the variable in the shader
+    /// \endcode
+    /// \code
+    /// shader.setParameter("myparam", 5, 6);
+    /// \endcode
+    ///
+    /// \param name Name of the parameter in the shader
+    /// \param x    First component of the value to assign
+    /// \param y    Second component of the value to assign
+    ///
+    ////////////////////////////////////////////////////////////
+    void setParameter(const std::string& name, int x, int y) const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Change a 3-components int vector parameter of the shader
+    ///
+    /// \a name is the name of the variable to change in the shader.
+    /// The corresponding parameter in the shader must be a 3x1 int vector
+    /// (ivec3 GLSL type).
+    ///
+    /// Example:
+    /// \code
+    /// uniform ivec3 myparam; // this is the variable in the shader
+    /// \endcode
+    /// \code
+    /// shader.setParameter("myparam", 5, 6, -8);
+    /// \endcode
+    ///
+    /// \param name Name of the parameter in the shader
+    /// \param x    First component of the value to assign
+    /// \param y    Second component of the value to assign
+    /// \param z    Third component of the value to assign
+    ///
+    ////////////////////////////////////////////////////////////
+    void setParameter(const std::string& name, int x, int y, int z) const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Change a 4-components int vector parameter of the shader
+    ///
+    /// \a name is the name of the variable to change in the shader.
+    /// The corresponding parameter in the shader must be a 4x1 int vector
+    /// (ivec4 GLSL type).
+    ///
+    /// Example:
+    /// \code
+    /// uniform ivec4 myparam; // this is the variable in the shader
+    /// \endcode
+    /// \code
+    /// shader.setParameter("myparam", 5, 6, -8, 0);
+    /// \endcode
+    ///
+    /// \param name Name of the parameter in the shader
+    /// \param x    First component of the value to assign
+    /// \param y    Second component of the value to assign
+    /// \param z    Third component of the value to assign
+    /// \param w    Fourth component of the value to assign
+    ///
+    ////////////////////////////////////////////////////////////
+    void setParameter(const std::string& name, int x, int y, int z, int w) const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Change a 2-components int vector parameter of the shader
+    ///
+    /// \a name is the name of the variable to change in the shader.
+    /// The corresponding parameter in the shader must be a 2x1 int vector
+    /// (ivec2 GLSL type).
+    ///
+    /// Example:
+    /// \code
+    /// uniform ivec2 myparam; // this is the variable in the shader
+    /// \endcode
+    /// \code
+    /// shader.setParameter("myparam", sf::Vector2i(5, 6));
+    /// \endcode
+    ///
+    /// \param name   Name of the parameter in the shader
+    /// \param vector Vector to assign
+    ///
+    ////////////////////////////////////////////////////////////
+    void setParameter(const std::string& name, const Vector2i& vector) const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Change a 3-components int vector parameter of the shader
+    ///
+    /// \a name is the name of the variable to change in the shader.
+    /// The corresponding parameter in the shader must be a 3x1 int vector
+    /// (ivec3 GLSL type).
+    ///
+    /// Example:
+    /// \code
+    /// uniform ivec3 myparam; // this is the variable in the shader
+    /// \endcode
+    /// \code
+    /// shader.setParameter("myparam", sf::Vector3f(5, 6, -8));
+    /// \endcode
+    ///
+    /// \param name   Name of the parameter in the shader
+    /// \param vector Vector to assign
+    ///
+    ////////////////////////////////////////////////////////////
+    void setParameter(const std::string& name, const Vector3i& vector) const;
+
+    ////////////////////////////////////////////////////////////
     /// \brief Change a float parameter of the shader
     ///
     /// \a name is the name of the variable to change in the shader.
@@ -238,7 +370,7 @@ public :
     /// \param x    Value to assign
     ///
     ////////////////////////////////////////////////////////////
-    void setParameter(const std::string& name, float x);
+    void setParameter(const std::string& name, float x) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Change a 2-components vector parameter of the shader
@@ -260,7 +392,7 @@ public :
     /// \param y    Second component of the value to assign
     ///
     ////////////////////////////////////////////////////////////
-    void setParameter(const std::string& name, float x, float y);
+    void setParameter(const std::string& name, float x, float y) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Change a 3-components vector parameter of the shader
@@ -283,7 +415,7 @@ public :
     /// \param z    Third component of the value to assign
     ///
     ////////////////////////////////////////////////////////////
-    void setParameter(const std::string& name, float x, float y, float z);
+    void setParameter(const std::string& name, float x, float y, float z) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Change a 4-components vector parameter of the shader
@@ -307,7 +439,7 @@ public :
     /// \param w    Fourth component of the value to assign
     ///
     ////////////////////////////////////////////////////////////
-    void setParameter(const std::string& name, float x, float y, float z, float w);
+    void setParameter(const std::string& name, float x, float y, float z, float w) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Change a 2-components vector parameter of the shader
@@ -328,7 +460,7 @@ public :
     /// \param vector Vector to assign
     ///
     ////////////////////////////////////////////////////////////
-    void setParameter(const std::string& name, const Vector2f& vector);
+    void setParameter(const std::string& name, const Vector2f& vector) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Change a 3-components vector parameter of the shader
@@ -349,7 +481,7 @@ public :
     /// \param vector Vector to assign
     ///
     ////////////////////////////////////////////////////////////
-    void setParameter(const std::string& name, const Vector3f& vector);
+    void setParameter(const std::string& name, const Vector3f& vector) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Change a color parameter of the shader
@@ -376,7 +508,7 @@ public :
     /// \param color Color to assign
     ///
     ////////////////////////////////////////////////////////////
-    void setParameter(const std::string& name, const Color& color);
+    void setParameter(const std::string& name, const Color& color) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Change a matrix parameter of the shader
@@ -399,7 +531,7 @@ public :
     /// \param transform Transform to assign
     ///
     ////////////////////////////////////////////////////////////
-    void setParameter(const std::string& name, const sf::Transform& transform);
+    void setParameter(const std::string& name, const sf::Transform& transform) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Change a texture parameter of the shader
@@ -431,7 +563,7 @@ public :
     /// \param texture Texture to assign
     ///
     ////////////////////////////////////////////////////////////
-    void setParameter(const std::string& name, const Texture& texture);
+    void setParameter(const std::string& name, const Texture& texture) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Change a texture parameter of the shader
@@ -454,7 +586,34 @@ public :
     /// \param name Name of the texture in the shader
     ///
     ////////////////////////////////////////////////////////////
-    void setParameter(const std::string& name, CurrentTextureType);
+    void setParameter(const std::string& name, CurrentTextureType) const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Get the location ID of a shader vertex attribute
+    ///
+    /// \param name Name of the vertex attribute to search
+    ///
+    /// \return Location ID of the vertex attribute, or -1 if not found
+    ///
+    ////////////////////////////////////////////////////////////
+    int getVertexAttributeLocation(const std::string& name) const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Set/Get whether the shader warns about missing variables
+    ///
+    /// When setting certain parameters is optional, you can use
+    /// this method to disable warnings about them not being set
+    /// in the shader.
+    ///
+    /// This will also return the previous warning setting for
+    /// easy resetting back to the previous state when required.
+    ///
+    /// \param warn true to enable warnings about missing variables, false to disable
+    ///
+    /// \return true if warnings were previously enabled, false if not
+    ///
+    ////////////////////////////////////////////////////////////
+    bool warnMissing(bool warn) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Bind a shader for rendering
@@ -496,12 +655,31 @@ public :
     ////////////////////////////////////////////////////////////
     /// \brief Get the string identifying the supported GLSL version
     ///
+    /// In the desktop implementation (not ES), the string returned
+    /// is guaranteed to begin with the version number. In the ES
+    /// implementation, the returned string is prefixed with "ES ".
+    ///
     /// \return std::string containing the supported GLSL version or an empty string if unsupported
     ///
     /// \see isAvailable
     ///
     ////////////////////////////////////////////////////////////
     static std::string getSupportedVersion();
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Get the maximum number of uniform components supported
+    ///
+    /// A uniform component is typically a single 32-bit data type
+    /// such as float or int. Vectors of those data types take up
+    /// the corresponding multiple of space, i.e. vec4 takes up
+    /// 4 floats worth of space and counts as 4 components. To
+    /// guarantee alignment, vec3 might also be packed to take up
+    /// the same amount of space as a vec4.
+    ///
+    /// \return Maximum number of uniform components supported
+    ///
+    ////////////////////////////////////////////////////////////
+    static unsigned int getMaximumUniformComponents();
 
 private :
 
@@ -536,21 +714,23 @@ private :
     /// \return Location ID of the parameter, or -1 if not found
     ///
     ////////////////////////////////////////////////////////////
-    int getParamLocation(const std::string& name);
+    int getParamLocation(const std::string& name) const;
 
     ////////////////////////////////////////////////////////////
     // Types
     ////////////////////////////////////////////////////////////
     typedef std::map<int, const Texture*> TextureTable;
-    typedef std::map<std::string, int> ParamTable;
+    typedef std::map<std::string, int> LocationTable;
 
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    unsigned int m_shaderProgram;  ///< OpenGL identifier for the program
-    int          m_currentTexture; ///< Location of the current texture in the shader
-    TextureTable m_textures;       ///< Texture variables in the shader, mapped to their location
-    ParamTable   m_params;         ///< Parameters location cache
+    unsigned int          m_shaderProgram;  ///< OpenGL identifier for the program
+    mutable int           m_currentTexture; ///< Location of the current texture in the shader
+    mutable TextureTable  m_textures;       ///< Texture variables in the shader, mapped to their location
+    mutable LocationTable m_params;         ///< Parameters location cache
+    mutable LocationTable m_attributes;     ///< Attributes location cache
+    mutable bool          m_warnMissing;    ///< Whether to warn the user that variables could not be found.
 };
 
 } // namespace sf
@@ -573,7 +753,9 @@ private :
 ///
 /// A sf::Shader can be composed of either a vertex shader
 /// alone, a fragment shader alone, or both combined
-/// (see the variants of the load functions).
+/// (see the variants of the load functions). When rendering
+/// using the non-legacy OpenGL pipeline, both are required
+/// to ensure proper behaviour.
 ///
 /// Shaders are written in GLSL, which is a C-like
 /// language dedicated to OpenGL shaders. You'll probably
@@ -582,7 +764,8 @@ private :
 ///
 /// Like any C/C++ program, a shader has its own variables
 /// that you can set from your C++ application. sf::Shader
-/// handles 5 different types of variables:
+/// handles 6 different types of variables:
+/// \li ints
 /// \li floats
 /// \li vectors (2, 3 or 4 components)
 /// \li colors
@@ -592,6 +775,7 @@ private :
 /// The value of the variables can be changed at any time
 /// with the various overloads of the setParameter function:
 /// \code
+/// shader.setParameter("offset", 3);
 /// shader.setParameter("offset", 2.f);
 /// shader.setParameter("point", 0.5f, 0.8f, 0.3f);
 /// shader.setParameter("color", sf::Color(128, 50, 255));
@@ -600,9 +784,60 @@ private :
 /// shader.setParameter("texture", sf::Shader::CurrentTexture);
 /// \endcode
 ///
-/// The special Shader::CurrentTexture argument maps the
-/// given texture variable to the current texture of the
-/// object being drawn (which cannot be known in advance).
+/// When rendering using the legacy pipeline, the special
+/// Shader::CurrentTexture argument maps the given texture
+/// variable to the current texture of the object being
+/// drawn (which cannot be known in advance).
+///
+/// When SFML selects to use the non-legacy pipeline
+/// implementation to render, shaders can make use of special
+/// uniforms and attributes which are provided by the SFML
+/// drawable implementation. Many of them are direct replacements
+/// for deprecated/removed built-in shader variables.
+///
+/// Here is a list of the built-in SFML shader uniforms:
+/// \li uniform mat4 sf_ModelMatrix, the current model matrix
+/// \li uniform mat4 sf_ViewMatrix, the current view matrix
+/// \li uniform mat4 sf_ProjectionMatrix, the current projection matrix
+/// \li uniform mat4 sf_NormalMatrix, the current normal matrix
+/// \li uniform mat4 sf_TextureMatrix, the current texture matrix
+/// \li uniform int sf_TextureEnabled, set to 1 when texturing is requested, 0 otherwise
+/// \li uniform sampler2D sf_Texture0, the bound 2D texture at the time of rendering
+/// \li uniform vec3 sf_ViewerPosition, the position of the view/camera in world space
+/// \li uniform int sf_LightCount, the number of lights currently enabled
+/// \li uniform Light sf_Lights[], uniform array of lights (values only set up to sf_Lights[sf_LightCount - 1])
+///
+/// The light structure:
+/// \code
+/// struct Light\n"
+/// {
+///     vec4  color;
+///     vec4  positionDirection;
+///     float ambientIntensity;
+///     float diffuseIntensity;
+///     float specularIntensity;
+///     float constantAttenuation;
+///     float linearAttenuation;
+///     float quadraticAttenuation;
+/// };
+/// \endcode
+///
+/// Whether a light is positional or directional can be
+/// determined through the w coordinate of positionDirection.
+/// If w is 1.0, the light is positional, if w is 0.0 it is
+/// directional.
+///
+/// Here is a list of the built-in SFML shader vertex attributes:
+/// \li in vec3 sf_Vertex, the position of the current vertex
+/// \li in vec4 sf_Color, the color of the current vertex
+/// \li in vec2 sf_MultiTexCoord0, the texture coordinate of the current vertex (normalize with sf_TextureMatrix)
+/// \li in vec3 sf_Normal, the normal of the current vertex
+///
+/// The default shaders that are provided when rendering
+/// using the non-legacy pipeline takes care of per-pixel
+/// lighting and texturing for you. If you want to write
+/// your own shaders, don't forget that you have to reimplement
+/// these yourself if you require the corresponding functionality.
 ///
 /// To apply a shader to a drawable, you must pass it as an
 /// additional parameter to the Draw function:

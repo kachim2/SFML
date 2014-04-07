@@ -80,7 +80,7 @@ public :
     /// \see setPosition
     ///
     ////////////////////////////////////////////////////////////
-    const Vector3f& getPosition() const;
+    virtual const Vector3f& getPosition() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Set the forward vector of the camera

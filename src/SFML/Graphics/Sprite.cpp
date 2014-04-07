@@ -35,7 +35,7 @@ namespace sf
 {
 ////////////////////////////////////////////////////////////
 Sprite::Sprite() :
-m_vertices   (Quads, 4),
+m_vertices   (Triangles, 6),
 m_texture    (NULL),
 m_textureRect()
 {
@@ -44,7 +44,7 @@ m_textureRect()
 
 ////////////////////////////////////////////////////////////
 Sprite::Sprite(const Texture& texture) :
-m_vertices   (Quads, 4),
+m_vertices   (Triangles, 6),
 m_texture    (NULL),
 m_textureRect()
 {
@@ -54,7 +54,7 @@ m_textureRect()
 
 ////////////////////////////////////////////////////////////
 Sprite::Sprite(const Texture& texture, const IntRect& rectangle) :
-m_vertices   (Quads, 4),
+m_vertices   (Triangles, 6),
 m_texture    (NULL),
 m_textureRect()
 {
@@ -95,6 +95,8 @@ void Sprite::setColor(const Color& color)
     m_vertices[1].color = color;
     m_vertices[2].color = color;
     m_vertices[3].color = color;
+    m_vertices[4].color = color;
+    m_vertices[5].color = color;
 }
 
 
@@ -156,7 +158,9 @@ void Sprite::updatePositions()
     m_vertices[0].position = Vector2f(0, 0);
     m_vertices[1].position = Vector2f(0, bounds.height);
     m_vertices[2].position = Vector2f(bounds.width, bounds.height);
-    m_vertices[3].position = Vector2f(bounds.width, 0);
+    m_vertices[3].position = Vector2f(0, 0);
+    m_vertices[4].position = Vector2f(bounds.width, bounds.height);
+    m_vertices[5].position = Vector2f(bounds.width, 0);
 }
 
 
@@ -171,7 +175,9 @@ void Sprite::updateTexCoords()
     m_vertices[0].texCoords = Vector2f(left, top);
     m_vertices[1].texCoords = Vector2f(left, bottom);
     m_vertices[2].texCoords = Vector2f(right, bottom);
-    m_vertices[3].texCoords = Vector2f(right, top);
+    m_vertices[3].texCoords = Vector2f(left, top);
+    m_vertices[4].texCoords = Vector2f(right, bottom);
+    m_vertices[5].texCoords = Vector2f(right, top);
 }
 
 } // namespace sf

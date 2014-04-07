@@ -107,6 +107,14 @@ public :
     Transform getInverse() const;
 
     ////////////////////////////////////////////////////////////
+    /// \brief Return the transpose of the transform
+    ///
+    /// \return A new transform which is the transpose of self
+    ///
+    ////////////////////////////////////////////////////////////
+    Transform getTranspose() const;
+
+    ////////////////////////////////////////////////////////////
     /// \brief Transform a 3D point
     ///
     /// \param x X coordinate of the point to transform

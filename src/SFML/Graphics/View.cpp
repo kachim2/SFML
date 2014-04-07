@@ -290,4 +290,11 @@ const Transform& View::getInverseViewTransform() const
     return m_inverseViewTransform;
 }
 
+
+////////////////////////////////////////////////////////////
+const Vector3f& View::getPosition() const
+{
+    return getCenter();
+}
+
 } // namespace sf
