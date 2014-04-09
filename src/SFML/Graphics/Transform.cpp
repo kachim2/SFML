@@ -194,7 +194,7 @@ Transform Transform::getInverse() const
     // (don't use an epsilon because the determinant may *really* be tiny)
     if (det != 0.f)
     {
-        det = 1.0 / det;
+        det = 1.f / det;
 
         for (int i = 0; i < 16; ++i)
             inverted_matrix[i] = inverted_matrix[i] * det;

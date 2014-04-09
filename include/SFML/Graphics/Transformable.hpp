@@ -122,7 +122,7 @@ public :
     ///
     /// \param factorX New horizontal scale factor
     /// \param factorY New vertical scale factor
-    /// \param factorY New depth scale factor
+    /// \param factorZ New depth scale factor
     ///
     /// \see scale, getScale
     ///
@@ -234,7 +234,7 @@ public :
     ///
     /// \param offsetX X offset
     /// \param offsetY Y offset
-    /// \param offsetY Z offset
+    /// \param offsetZ Z offset
     ///
     /// \see setPosition
     ///

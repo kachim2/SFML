@@ -34,6 +34,7 @@
 #include <SFML/Graphics/GLCheck.hpp>
 #include <SFML/System/Err.hpp>
 #include <sstream>
+#include <cstddef>
 
 
 namespace sf
@@ -230,10 +231,10 @@ void RenderTarget::draw(const VertexBuffer& buffer, const RenderStates& states)
         // Setup the pointers to the vertices' components
         if (!m_defaultShader)
         {
-            glCheck(glVertexPointer(3, GL_FLOAT, sizeof(Vertex), 0));
-            glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), reinterpret_cast<void*>(3 * sizeof(float))));
-            glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), reinterpret_cast<void*>(3 * sizeof(float) + 4 * sizeof(char))));
-            glCheck(glNormalPointer(GL_FLOAT, sizeof(Vertex), reinterpret_cast<void*>(5 * sizeof(float) + 4 * sizeof(char))));
+            glCheck(glVertexPointer(3, GL_FLOAT, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position))));
+            glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color))));
+            glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texCoords))));
+            glCheck(glNormalPointer(GL_FLOAT, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal))));
 
             // Draw the primitives
             glCheck(glDrawArrays(mode, 0, buffer.getVertexCount()));
@@ -260,25 +261,25 @@ void RenderTarget::draw(const VertexBuffer& buffer, const RenderStates& states)
             if (vertexLocation >= 0)
             {
                 glCheck(glEnableVertexAttribArrayARB(vertexLocation));
-                glCheck(glVertexAttribPointerARB(vertexLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0));
+                glCheck(glVertexAttribPointerARB(vertexLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position))));
             }
 
             if (colorLocation >= 0)
             {
                 glCheck(glEnableVertexAttribArrayARB(colorLocation));
-                glCheck(glVertexAttribPointerARB(colorLocation, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), reinterpret_cast<void*>(sizeof(Vector3f))));
+                glCheck(glVertexAttribPointerARB(colorLocation, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color))));
             }
 
             if (texCoordLocation >= 0)
             {
                 glCheck(glEnableVertexAttribArrayARB(texCoordLocation));
-                glCheck(glVertexAttribPointerARB(texCoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(sizeof(Vector3f) + sizeof(Color))));
+                glCheck(glVertexAttribPointerARB(texCoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texCoords))));
             }
 
             if (normalLocation >= 0)
             {
                 glCheck(glEnableVertexAttribArrayARB(normalLocation));
-                glCheck(glVertexAttribPointerARB(normalLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(sizeof(Vector3f) + sizeof(Color) + sizeof(Vector2f))));
+                glCheck(glVertexAttribPointerARB(normalLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal))));
             }
 
             // Draw the primitives
@@ -413,10 +414,10 @@ void RenderTarget::draw(const Vertex* vertices, unsigned int vertexCount,
             if (vertices)
             {
                 const char* data = reinterpret_cast<const char*>(vertices);
-                glCheck(glVertexPointer(3, GL_FLOAT, sizeof(Vertex), data + 0));
-                glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), data + 12));
-                glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), data + 16));
-                glCheck(glNormalPointer(GL_FLOAT, sizeof(Vertex), data + 24));
+                glCheck(glVertexPointer(3, GL_FLOAT, sizeof(Vertex), data + offsetof(Vertex, position)));
+                glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), data + offsetof(Vertex, color)));
+                glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), data + offsetof(Vertex, texCoords)));
+                glCheck(glNormalPointer(GL_FLOAT, sizeof(Vertex), data + offsetof(Vertex, normal)));
             }
 
             // Draw the primitives
@@ -446,25 +447,25 @@ void RenderTarget::draw(const Vertex* vertices, unsigned int vertexCount,
             if (vertexLocation >= 0)
             {
                 glCheck(glEnableVertexAttribArrayARB(vertexLocation));
-                glCheck(glVertexAttribPointerARB(vertexLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0));
+                glCheck(glVertexAttribPointerARB(vertexLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), data + offsetof(Vertex, position)));
             }
 
             if (colorLocation >= 0)
             {
                 glCheck(glEnableVertexAttribArrayARB(colorLocation));
-                glCheck(glVertexAttribPointerARB(colorLocation, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), data + sizeof(Vector3f)));
+                glCheck(glVertexAttribPointerARB(colorLocation, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), data + offsetof(Vertex, color)));
             }
 
             if (texCoordLocation >= 0)
             {
                 glCheck(glEnableVertexAttribArrayARB(texCoordLocation));
-                glCheck(glVertexAttribPointerARB(texCoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), data + sizeof(Vector3f) + sizeof(Color)));
+                glCheck(glVertexAttribPointerARB(texCoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), data + offsetof(Vertex, texCoords)));
             }
 
             if (normalLocation >= 0)
             {
                 glCheck(glEnableVertexAttribArrayARB(normalLocation));
-                glCheck(glVertexAttribPointerARB(normalLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), data + sizeof(Vector3f) + sizeof(Color) + sizeof(Vector2f)));
+                glCheck(glVertexAttribPointerARB(normalLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), data + offsetof(Vertex, normal)));
             }
 
             // Draw the primitives
@@ -836,7 +837,7 @@ void RenderTarget::setupNonLegacyPipeline()
                               "// Vertex shader outputs\n"
                               "out vec4 sf_FrontColor;\n"
                               "out vec2 sf_TexCoord0;\n"
-                              "out vec3 sf_FragCoord;\n"
+                              "out vec3 sf_FragWorldPosition;\n"
                               "out vec3 sf_FragNormal;\n"
                               "\n"
                               "void main()\n"
@@ -855,7 +856,7 @@ void RenderTarget::setupNonLegacyPipeline()
                               "    if (sf_LightCount > 0)\n"
                               "    {\n"
                               "        sf_FragNormal = sf_Normal;\n"
-                              "        sf_FragCoord = sf_Vertex;\n"
+                              "        sf_FragWorldPosition = vec3(sf_ModelMatrix * vec4(sf_Vertex, 1.0));\n"
                               "    }\n"
                               "}\n";
 
@@ -887,7 +888,7 @@ void RenderTarget::setupNonLegacyPipeline()
                                 "// Fragment attributes\n"
                                 "in vec4 sf_FrontColor;\n"
                                 "in vec2 sf_TexCoord0;\n"
-                                "in vec3 sf_FragCoord;\n"
+                                "in vec3 sf_FragWorldPosition;\n"
                                 "in vec3 sf_FragNormal;\n"
                                 "\n"
                                 "// Fragment shader outputs\n"
@@ -904,21 +905,20 @@ void RenderTarget::setupNonLegacyPipeline()
                                 "    const vec4 materialSpecularColor = vec4(0.0001, 0.0001, 0.0001, 1.0);\n"
                                 "\n"
                                 "    vec3 fragmentNormal = normalize((sf_NormalMatrix * vec4(sf_FragNormal, 1.0)).xyz);\n"
-                                "    vec3 fragmentWorldPosition = vec3(sf_ModelMatrix * vec4(sf_FragCoord, 1.0));\n"
-                                "    vec3 fragmentDistanceToViewer = normalize(sf_ViewerPosition - fragmentWorldPosition);"
+                                "    vec3 fragmentDistanceToViewer = normalize(sf_ViewerPosition - sf_FragWorldPosition);"
                                 "\n"
                                 "    vec4 totalIntensity = vec4(1.0, 1.0, 1.0, 1.0);\n"
                                 "    if (sf_LightCount > 0)\n"
                                 "        totalIntensity = vec4(0.0, 0.0, 0.0, 0.0);\n"
                                 "    for (int index = 0; index < sf_LightCount; ++index)\n"
                                 "    {\n"
-                                "        vec3 fragmentToLightDirection = normalize(-sf_Lights[index].positionDirection.xyz);\n"
+                                "        vec3 rayDirection = normalize(sf_Lights[index].positionDirection.xyz);\n"
                                 "        float attenuationFactor = 1.0;"
                                 "\n"
                                 "        if (sf_Lights[index].positionDirection.w > 0.0)\n"
                                 "        {\n"
-                                "            fragmentToLightDirection = normalize(sf_Lights[index].positionDirection.xyz - fragmentWorldPosition);\n"
-                                "            float rayLength = length(sf_Lights[index].positionDirection.xyz - fragmentWorldPosition);"
+                                "            rayDirection = normalize(sf_FragWorldPosition - sf_Lights[index].positionDirection.xyz);\n"
+                                "            float rayLength = length(sf_Lights[index].positionDirection.xyz - sf_FragWorldPosition);"
                                 "            attenuationFactor = sf_Lights[index].constantAttenuation +\n"
                                 "                                sf_Lights[index].linearAttenuation * rayLength +\n"
                                 "                                sf_Lights[index].quadraticAttenuation * rayLength * rayLength;\n"
@@ -926,12 +926,12 @@ void RenderTarget::setupNonLegacyPipeline()
                                 "\n"
                                 "        vec4 ambientIntensity = sf_Lights[index].color * sf_Lights[index].ambientIntensity;\n"
                                 "\n"
-                                "        float diffuseCoefficient = max(0.0, dot(fragmentNormal, fragmentToLightDirection));\n"
+                                "        float diffuseCoefficient = max(0.0, dot(fragmentNormal, -rayDirection));\n"
                                 "        vec4 diffuseIntensity = sf_Lights[index].color * sf_Lights[index].diffuseIntensity * diffuseCoefficient;\n"
                                 "\n"
                                 "        float specularCoefficient = 0.0;\n"
                                 "        if(diffuseCoefficient > 0.0)"
-                                "            specularCoefficient = pow(max(0.0, dot(fragmentDistanceToViewer, reflect(-fragmentToLightDirection, fragmentNormal))), materialShininess);"
+                                "            specularCoefficient = pow(max(0.0, dot(fragmentDistanceToViewer, reflect(rayDirection, fragmentNormal))), materialShininess);"
                                 "        vec4 specularIntensity = specularCoefficient * materialSpecularColor * sf_Lights[index].color * sf_Lights[index].specularIntensity;"
                                 "\n"
                                 "        totalIntensity += ambientIntensity + (diffuseIntensity + specularIntensity) / attenuationFactor;\n"

@@ -348,7 +348,7 @@ public :
     ///
     /// \param offsetX X offset
     /// \param offsetY Y offset
-    /// \param offsetY Z offset
+    /// \param offsetZ Z offset
     ///
     /// \see setPosition
     ///

@@ -178,7 +178,7 @@ int main()
     if (!backgroundTexture.loadFromFile("resources/background.jpg"))
         return EXIT_FAILURE;
     sf::Sprite background(backgroundTexture);
-    background.setOrigin(backgroundTexture.getSize().x / 2, backgroundTexture.getSize().y / 2);
+    background.setOrigin(backgroundTexture.getSize().x / 2.f, backgroundTexture.getSize().y / 2.f);
     background.setPosition(0, 0, -100);
     background.setScale(downscaleFactor * 100.f);
 
@@ -188,7 +188,7 @@ int main()
         return EXIT_FAILURE;
     sf::Text text("SFML / 3D demo", font);
     text.setColor(sf::Color(255, 255, 255, 170));
-    text.setOrigin(text.getGlobalBounds().width / 2, text.getGlobalBounds().height / 2);
+    text.setOrigin(text.getGlobalBounds().width / 2.f, text.getGlobalBounds().height / 2.f);
     text.setPosition(0, -30, -100);
     text.setScale(downscaleFactor * 100.f);
 
@@ -215,7 +215,7 @@ int main()
     if (!billboardTexture.loadFromFile("resources/texture.jpg"))
         return EXIT_FAILURE;
     sf::Billboard billboard(billboardTexture);
-    billboard.setOrigin(billboardTexture.getSize().x / 2, billboardTexture.getSize().y / 2);
+    billboard.setOrigin(billboardTexture.getSize().x / 2.f, billboardTexture.getSize().y / 2.f);
     billboard.setPosition(0, -10, -50);
     billboard.setScale(downscaleFactor * 20.f);
     billboard.setCamera(camera);

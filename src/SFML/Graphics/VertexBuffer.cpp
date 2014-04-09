@@ -265,6 +265,8 @@ void VertexBuffer::bind(const VertexBuffer* buffer)
 
         if (buffer->m_needUpload)
         {
+            // Orphan the buffer first to give the driver an opportunity to optimize streaming
+            glCheck(glBufferDataARB(GL_ARRAY_BUFFER_ARB, buffer->m_vertices.size() * sizeof(Vertex), NULL, GL_DYNAMIC_DRAW));
             glCheck(glBufferDataARB(GL_ARRAY_BUFFER_ARB, buffer->m_vertices.size() * sizeof(Vertex), &(buffer->m_vertices[0]), GL_DYNAMIC_DRAW));
             buffer->m_needUpload = false;
         }
@@ -285,7 +287,7 @@ bool VertexBuffer::isAvailable()
     // Make sure that GLEW is initialized
     priv::ensureGlewInit();
 
-    return GLEW_ARB_vertex_buffer_object;
+    return GLEW_ARB_vertex_buffer_object != 0;
 }
 
 } // namespace sf

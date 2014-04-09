@@ -575,7 +575,7 @@ void Light::getId()
     if (m_usedIds.empty())
         m_usedIds.resize(getMaximumLights(), false);
 
-    for (int i = 0; i < m_usedIds.size(); ++i)
+    for (std::size_t i = 0; i < m_usedIds.size(); ++i)
     {
         if (!m_usedIds[i])
         {

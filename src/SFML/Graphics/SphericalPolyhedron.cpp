@@ -128,7 +128,7 @@ void SphericalPolyhedron::construct() const
     };
 
     m_geometry.clear();
-    m_geometry.reserve((20 * std::pow(4, m_subdivisions)) * 3);
+    m_geometry.reserve(60 * (1 << (m_subdivisions * 2)));
 
     for (int i = 0; i < 20; ++i)
         subdivide(vertices[indices[i * 3 + 0]], vertices[indices[i * 3 + 1]], vertices[indices[i * 3 + 2]], m_subdivisions);
