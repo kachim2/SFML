@@ -180,7 +180,7 @@ protected :
     /// This function is meant for internal use only.
     ///
     ////////////////////////////////////////////////////////////
-    VertexContainer(const VertexContainer*);
+    VertexContainer(int);
 
 private :
 

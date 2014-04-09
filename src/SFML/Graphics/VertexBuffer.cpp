@@ -28,7 +28,7 @@ namespace sf
 {
 ////////////////////////////////////////////////////////////
 VertexBuffer::VertexBuffer() :
-VertexContainer(this),
+VertexContainer(0),
 m_vertices     (),
 m_primitiveType(Points),
 m_bufferObject (0),
@@ -41,7 +41,7 @@ m_needUpload   (true)
 
 ////////////////////////////////////////////////////////////
 VertexBuffer::VertexBuffer(PrimitiveType type, unsigned int vertexCount) :
-VertexContainer(this),
+VertexContainer(0),
 m_vertices     (vertexCount),
 m_primitiveType(type),
 m_bufferObject (0),
@@ -54,7 +54,7 @@ m_needUpload   (true)
 
 ////////////////////////////////////////////////////////////
 VertexBuffer::VertexBuffer(const VertexBuffer& copy) :
-VertexContainer(this),
+VertexContainer(0),
 m_vertices     (copy.m_vertices),
 m_primitiveType(copy.m_primitiveType),
 m_bufferObject (0),

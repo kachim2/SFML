@@ -40,7 +40,7 @@ m_impl(NULL)
 
 
 ////////////////////////////////////////////////////////////
-VertexContainer::VertexContainer(const VertexContainer*) :
+VertexContainer::VertexContainer(int) :
 m_impl(NULL)
 {
 }
