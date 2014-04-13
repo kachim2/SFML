@@ -3,21 +3,32 @@
 // Headers
 ////////////////////////////////////////////////////////////
 #include <SFML/Graphics/Light.hpp>
+#include <SFML/Graphics/Shader.hpp>
+#include <SFML/Graphics/VertexBuffer.hpp>
 #include <SFML/Graphics/GLCheck.hpp>
 #include <SFML/System/Mutex.hpp>
 #include <SFML/System/Lock.hpp>
 #include <SFML/System/Err.hpp>
 #include <cmath>
 #include <sstream>
+#include <vector>
+
+
+namespace
+{
+    // Static light data and its mutex
+    sf::Mutex mutex;
+    unsigned int count = 0;
+    std::vector<bool> usedIds;
+    std::set<const sf::Light*> enabledLights;
+    bool lightingEnabled = false;
+    sf::VertexBuffer* lightUniformBuffer = NULL;
+    bool lightUniformBufferNeedUpload = true;
+}
 
 
 namespace sf
 {
-
-Mutex Light::m_lightMutex;
-std::vector<bool> Light::m_usedIds;
-std::set<const Light*> Light::m_enabledLights;
-bool Light::m_lightingEnabled = false;
 
 ////////////////////////////////////////////////////////////
 Light::Light() :
@@ -37,6 +48,8 @@ m_enabled             (false)
 
     if (m_light < 0)
         return;
+
+    setNeedUniformUpload();
 
     if (hasShaderLighting())
         return;
@@ -79,6 +92,8 @@ m_enabled             (false)
 
     if (m_light < 0)
         return;
+
+    setNeedUniformUpload();
 
     // If this is a directional light source, normalize the direction vector
     if (m_directional)
@@ -127,8 +142,8 @@ Light::~Light()
 
     if (m_light >= 0)
     {
-        Lock lock(m_lightMutex);
-        m_usedIds[m_light] = false;
+        Lock lock(mutex);
+        usedIds[m_light] = false;
     }
 }
 
@@ -140,6 +155,8 @@ void Light::setDirectional(bool directional)
 
     if (m_light < 0)
         return;
+
+    setNeedUniformUpload();
 
     // If this becomes a directional light source, normalize the direction vector
     if (m_directional)
@@ -171,6 +188,8 @@ void Light::setPosition(const Vector3f& position)
 
     if (m_light < 0)
         return;
+
+    setNeedUniformUpload();
 
     // If this is a directional light source, normalize the direction vector
     if (m_directional)
@@ -224,6 +243,8 @@ void Light::setColor(const Color& color)
     if (m_light < 0)
         return;
 
+    setNeedUniformUpload();
+
     if (hasShaderLighting())
         return;
 
@@ -262,6 +283,8 @@ void Light::setAmbientIntensity(float intensity)
     if (m_light < 0)
         return;
 
+    setNeedUniformUpload();
+
     if (hasShaderLighting())
         return;
 
@@ -287,6 +310,8 @@ void Light::setDiffuseIntensity(float intensity)
 
     if (m_light < 0)
         return;
+
+    setNeedUniformUpload();
 
     if (hasShaderLighting())
         return;
@@ -314,6 +339,8 @@ void Light::setSpecularIntensity(float intensity)
     if (m_light < 0)
         return;
 
+    setNeedUniformUpload();
+
     if (hasShaderLighting())
         return;
 
@@ -340,6 +367,8 @@ void Light::setConstantAttenuation(float attenuation)
     if (m_light < 0)
         return;
 
+    setNeedUniformUpload();
+
     if (hasShaderLighting())
         return;
 
@@ -362,6 +391,8 @@ void Light::setLinearAttenuation(float attenuation)
     if (m_light < 0)
         return;
 
+    setNeedUniformUpload();
+
     if (hasShaderLighting())
         return;
 
@@ -383,6 +414,8 @@ void Light::setQuadraticAttenuation(float attenuation)
 
     if (m_light < 0)
         return;
+
+    setNeedUniformUpload();
 
     if (hasShaderLighting())
         return;
@@ -425,8 +458,10 @@ void Light::enable()
     if (m_light < 0)
         return;
 
-    Lock lock(m_lightMutex);
-    m_enabledLights.insert(this);
+    setNeedUniformUpload();
+
+    Lock lock(mutex);
+    enabledLights.insert(this);
 
     if (hasShaderLighting())
         return;
@@ -441,8 +476,10 @@ void Light::disable()
     if (m_light < 0)
         return;
 
-    Lock lock(m_lightMutex);
-    m_enabledLights.erase(this);
+    setNeedUniformUpload();
+
+    Lock lock(mutex);
+    enabledLights.erase(this);
 
     if (hasShaderLighting())
         return;
@@ -474,8 +511,8 @@ void Light::enableLighting()
 {
     ensureGlContext();
 
-    Lock lock(m_lightMutex);
-    m_lightingEnabled = true;
+    Lock lock(mutex);
+    lightingEnabled = true;
 
     if (hasShaderLighting())
         return;
@@ -489,8 +526,8 @@ void Light::disableLighting()
 {
     ensureGlContext();
 
-    Lock lock(m_lightMutex);
-    m_lightingEnabled = false;
+    Lock lock(mutex);
+    lightingEnabled = false;
 
     if (hasShaderLighting())
         return;
@@ -502,15 +539,15 @@ void Light::disableLighting()
 ////////////////////////////////////////////////////////////
 bool Light::isLightingEnabled()
 {
-    Lock lock(m_lightMutex);
-    return m_lightingEnabled;
+    Lock lock(mutex);
+    return lightingEnabled;
 }
 
 
 ////////////////////////////////////////////////////////////
 bool Light::hasShaderLighting()
 {
-    Lock lock(m_lightMutex);
+    Lock lock(mutex);
 
     static bool checked = false;
     static bool shaderLightingSupported = false;
@@ -547,6 +584,39 @@ bool Light::hasShaderLighting()
 
 
 ////////////////////////////////////////////////////////////
+void Light::increaseLightReferences()
+{
+    ensureGlContext();
+
+    Lock lock(mutex);
+
+    if (!count && Shader::isUniformBufferAvailable())
+    {
+        lightUniformBuffer = new VertexBuffer;
+        setNeedUniformUpload();
+    }
+
+    count++;
+}
+
+
+////////////////////////////////////////////////////////////
+void Light::decreaseLightReferences()
+{
+    ensureGlContext();
+
+    Lock lock(mutex);
+    count--;
+
+    if (!count)
+    {
+        delete lightUniformBuffer;
+        lightUniformBuffer = NULL;
+    }
+}
+
+
+////////////////////////////////////////////////////////////
 Light& Light::operator =(const Light& right)
 {
     Light temp(right);
@@ -570,17 +640,17 @@ Light& Light::operator =(const Light& right)
 ////////////////////////////////////////////////////////////
 void Light::getId()
 {
-    Lock lock(m_lightMutex);
+    Lock lock(mutex);
 
-    if (m_usedIds.empty())
-        m_usedIds.resize(getMaximumLights(), false);
+    if (usedIds.empty())
+        usedIds.resize(getMaximumLights(), false);
 
-    for (std::size_t i = 0; i < m_usedIds.size(); ++i)
+    for (std::size_t i = 0; i < usedIds.size(); ++i)
     {
-        if (!m_usedIds[i])
+        if (!usedIds[i])
         {
-            m_light = i;
-            m_usedIds[i] = true;
+            m_light = static_cast<int>(i);
+            usedIds[i] = true;
             return;
         }
     }
@@ -596,30 +666,111 @@ void Light::getId()
 
 
 ////////////////////////////////////////////////////////////
-void Light::addToShader(const Shader& shader) const
+void Light::addLightsToShader(const Shader& shader)
 {
-    if (m_shaderElement.empty())
+    if (!lightingEnabled)
     {
-        std::ostringstream shaderElement;
-        shaderElement << "sf_Lights[" << m_light << "]";
-        m_shaderElement = shaderElement.str();
+        shader.setParameter("sf_LightingEnabled", 0);
+        return;
     }
 
-    shader.setParameter(m_shaderElement + ".color", m_color);
-    shader.setParameter(m_shaderElement + ".ambientIntensity", m_ambientIntensity);
-    shader.setParameter(m_shaderElement + ".diffuseIntensity", m_diffuseIntensity);
-    shader.setParameter(m_shaderElement + ".specularIntensity", m_specularIntensity);
-    shader.setParameter(m_shaderElement + ".positionDirection", m_position.x, m_position.y, m_position.z, m_directional ? 0.f : 1.f);
-    shader.setParameter(m_shaderElement + ".constantAttenuation", m_constantAttenuation);
-    shader.setParameter(m_shaderElement + ".linearAttenuation", m_linearAttenuation);
-    shader.setParameter(m_shaderElement + ".quadraticAttenuation", m_quadraticAttenuation);
+    shader.setParameter("sf_LightingEnabled", 1);
+
+    if (!Shader::isUniformBufferAvailable())
+    {
+        for (std::set<const sf::Light*>::const_iterator i = enabledLights.begin(); i != enabledLights.end(); ++i)
+        {
+            const Light& light = *(*i);
+
+            if (light.m_shaderElement.empty())
+            {
+                std::ostringstream shaderElement;
+                shaderElement << "sf_Lights[" << light.m_light << "]";
+                light.m_shaderElement = shaderElement.str();
+            }
+
+            shader.setParameter(light.m_shaderElement + ".ambientColor",  light.m_color.r * light.m_ambientIntensity  / 255.f,
+                                                                          light.m_color.g * light.m_ambientIntensity  / 255.f,
+                                                                          light.m_color.b * light.m_ambientIntensity  / 255.f,
+                                                                          light.m_color.a * light.m_ambientIntensity  / 255.f);
+            shader.setParameter(light.m_shaderElement + ".diffuseColor",  light.m_color.r * light.m_diffuseIntensity  / 255.f,
+                                                                          light.m_color.g * light.m_diffuseIntensity  / 255.f,
+                                                                          light.m_color.b * light.m_diffuseIntensity  / 255.f,
+                                                                          light.m_color.a * light.m_diffuseIntensity  / 255.f);
+            shader.setParameter(light.m_shaderElement + ".specularColor", light.m_color.r * light.m_specularIntensity / 255.f,
+                                                                          light.m_color.g * light.m_specularIntensity / 255.f,
+                                                                          light.m_color.b * light.m_specularIntensity / 255.f,
+                                                                          light.m_color.a * light.m_specularIntensity / 255.f);
+            shader.setParameter(light.m_shaderElement + ".positionDirection", light.m_position.x,
+                                                                              light.m_position.y,
+                                                                              light.m_position.z,
+                                                                              light.m_directional ? 0.f : 1.f);
+            shader.setParameter(light.m_shaderElement + ".attenuation", light.m_constantAttenuation,
+                                                                        light.m_linearAttenuation,
+                                                                        light.m_quadraticAttenuation,
+                                                                        1.f);
+        }
+    }
+    else if (lightUniformBuffer)
+    {
+        {
+            Lock lock(mutex);
+
+            if (lightUniformBufferNeedUpload)
+            {
+                lightUniformBufferNeedUpload = false;
+
+                std::size_t bytesNeeded = enabledLights.size() * 20 * sizeof(float);
+
+                // Make sure we have enough space for our lighting data
+                lightUniformBuffer->resize((bytesNeeded / sizeof(Vertex)) + 1);
+                float* dataPointer = static_cast<float*>(lightUniformBuffer->getPointer());
+                std::size_t index = 0;
+
+                for (std::set<const sf::Light*>::const_iterator i = enabledLights.begin(); i != enabledLights.end(); ++i, ++index)
+                {
+                    const Light& light = *(*i);
+
+                    dataPointer[index * 20 + 0]  = light.m_color.r * light.m_ambientIntensity  / 255.f;
+                    dataPointer[index * 20 + 1]  = light.m_color.g * light.m_ambientIntensity  / 255.f;
+                    dataPointer[index * 20 + 2]  = light.m_color.b * light.m_ambientIntensity  / 255.f;
+                    dataPointer[index * 20 + 3]  = light.m_color.a * light.m_ambientIntensity  / 255.f;
+                    dataPointer[index * 20 + 4]  = light.m_color.r * light.m_diffuseIntensity  / 255.f;
+                    dataPointer[index * 20 + 5]  = light.m_color.g * light.m_diffuseIntensity  / 255.f;
+                    dataPointer[index * 20 + 6]  = light.m_color.b * light.m_diffuseIntensity  / 255.f;
+                    dataPointer[index * 20 + 7]  = light.m_color.a * light.m_diffuseIntensity  / 255.f;
+                    dataPointer[index * 20 + 8]  = light.m_color.r * light.m_specularIntensity / 255.f;
+                    dataPointer[index * 20 + 9]  = light.m_color.g * light.m_specularIntensity / 255.f;
+                    dataPointer[index * 20 + 10] = light.m_color.b * light.m_specularIntensity / 255.f;
+                    dataPointer[index * 20 + 11] = light.m_color.a * light.m_specularIntensity / 255.f;
+                    dataPointer[index * 20 + 12] = light.m_position.x;
+                    dataPointer[index * 20 + 13] = light.m_position.y;
+                    dataPointer[index * 20 + 14] = light.m_position.z;
+                    dataPointer[index * 20 + 15] = light.m_directional ? 0.f : 1.f;
+                    dataPointer[index * 20 + 16] = light.m_constantAttenuation;
+                    dataPointer[index * 20 + 17] = light.m_linearAttenuation;
+                    dataPointer[index * 20 + 18] = light.m_quadraticAttenuation;
+                    dataPointer[index * 20 + 19] = 1.f;
+                }
+            }
+        }
+
+        shader.setBlock("Lights", *lightUniformBuffer);
+    }
+
+    shader.setParameter("sf_LightCount", static_cast<int>(enabledLights.size()));
 }
 
 
 ////////////////////////////////////////////////////////////
-const std::set<const Light*>& Light::getEnabledLights()
+void Light::setNeedUniformUpload()
 {
-    return m_enabledLights;
+    if (!Shader::isUniformBufferAvailable())
+        return;
+
+    Lock lock(mutex);
+
+    lightUniformBufferNeedUpload = true;
 }
 
 } // namespace sf

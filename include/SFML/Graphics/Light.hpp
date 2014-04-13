@@ -7,16 +7,15 @@
 ////////////////////////////////////////////////////////////
 #include <SFML/Graphics/Export.hpp>
 #include <SFML/Graphics/Color.hpp>
-#include <SFML/Graphics/Shader.hpp>
 #include <SFML/Window/GlResource.hpp>
 #include <SFML/System/Vector3.hpp>
-#include <vector>
+#include <string>
 #include <set>
 
 
 namespace sf
 {
-class Mutex;
+class Shader;
 
 ////////////////////////////////////////////////////////////
 /// \brief Light source, either positional or directional
@@ -486,9 +485,31 @@ public :
     ////////////////////////////////////////////////////////////
     static bool hasShaderLighting();
 
-private :
+    ////////////////////////////////////////////////////////////
+    /// \brief Increase the lighting reference count
+    ///
+    /// This function is meant for internal use only.
+    ///
+    ////////////////////////////////////////////////////////////
+    static void increaseLightReferences();
 
-    friend class RenderTarget;
+    ////////////////////////////////////////////////////////////
+    /// \brief Decrease the lighting reference count
+    ///
+    /// This function is meant for internal use only.
+    ///
+    ////////////////////////////////////////////////////////////
+    static void decreaseLightReferences();
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Add lighting data to the given shader
+    ///
+    /// \param shader Shader to add the lighting data to
+    ///
+    ////////////////////////////////////////////////////////////
+    static void addLightsToShader(const Shader& shader);
+
+private :
 
     ////////////////////////////////////////////////////////////
     /// \brief Get a free identifier for this light
@@ -497,41 +518,26 @@ private :
     void getId();
 
     ////////////////////////////////////////////////////////////
-    /// \brief Add the lighting data of this light to the given shader
-    ///
-    /// \param shader Shader to add the lighting data to
+    /// \brief Set that the lighting data needs to be re-uploaded
     ///
     ////////////////////////////////////////////////////////////
-    void addToShader(const Shader& shader) const;
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Get the set of lights that are currently enabled
-    ///
-    /// \return std::set containing the lights that are currently enabled
-    ///
-    ////////////////////////////////////////////////////////////
-    static const std::set<const Light*>& getEnabledLights();
+    static void setNeedUniformUpload();
 
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    int      m_light;                    ///< Internal light identifier
-    Vector3f m_position;                 ///< Position/direction of the light
-    bool     m_directional;              ///< Whether the light is a directional light
-    Color    m_color;                    ///< Color of the light
-    float    m_ambientIntensity;         ///< Ambient intensity of the light
-    float    m_diffuseIntensity;         ///< Diffuse intensity of the light
-    float    m_specularIntensity;        ///< Specular intensity of the light
-    float    m_constantAttenuation;      ///< Constant attenuation used during lighting computations
-    float    m_linearAttenuation;        ///< Linear attenuation used during lighting computations
-    float    m_quadraticAttenuation;     ///< Quadratic attenuation used during lighting computations
-    bool     m_enabled;                  ///< Whether the light is enabled
-    mutable std::string m_shaderElement; ///< String containing the element used to access lighting data in a shader
-
-    static Mutex                  m_lightMutex;      ///< Mutex guarding the static light state
-    static std::vector<bool>      m_usedIds;         ///< std::vector tracking which light identifiers are in use
-    static std::set<const Light*> m_enabledLights;   ///< std::set tracking which lights are enabled
-    static bool                   m_lightingEnabled; ///< Whether lighting is enabled
+    int                 m_light;                ///< Internal light identifier
+    Vector3f            m_position;             ///< Position/direction of the light
+    bool                m_directional;          ///< Whether the light is a directional light
+    Color               m_color;                ///< Color of the light
+    float               m_ambientIntensity;     ///< Ambient intensity of the light
+    float               m_diffuseIntensity;     ///< Diffuse intensity of the light
+    float               m_specularIntensity;    ///< Specular intensity of the light
+    float               m_constantAttenuation;  ///< Constant attenuation used during lighting computations
+    float               m_linearAttenuation;    ///< Linear attenuation used during lighting computations
+    float               m_quadraticAttenuation; ///< Quadratic attenuation used during lighting computations
+    bool                m_enabled;              ///< Whether the light is enabled
+    mutable std::string m_shaderElement;        ///< Cached string containing the element used to access lighting data in a shader
 };
 
 } // namespace sf

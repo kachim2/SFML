@@ -28,11 +28,29 @@
 ////////////////////////////////////////////////////////////
 #include <SFML/Graphics/Shader.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/VertexBuffer.hpp>
 #include <SFML/Graphics/GLCheck.hpp>
 #include <SFML/System/InputStream.hpp>
+#include <SFML/System/Mutex.hpp>
+#include <SFML/System/Lock.hpp>
 #include <SFML/System/Err.hpp>
 #include <fstream>
 #include <vector>
+
+
+namespace
+{
+    // Thread-safe unique identifier generator,
+    // is used for id
+    sf::Uint64 getUniqueId()
+    {
+        static sf::Uint64 id = 1; // start at 1, zero is "no program"
+        static sf::Mutex mutex;
+
+        sf::Lock lock(mutex);
+        return id++;
+    }
+}
 
 
 namespace
@@ -99,7 +117,11 @@ m_currentTexture(-1),
 m_textures      (),
 m_params        (),
 m_attributes    (),
-m_warnMissing   (true)
+m_blockBindings (),
+m_warnMissing   (true),
+m_id            (0),
+m_parameterBlock(false),
+m_blockProgram  (0)
 {
 }
 
@@ -128,14 +150,16 @@ bool Shader::loadFromFile(const std::string& filename, Type type)
 
     // Compile the shader program
     if (type == Vertex)
-        return compile(&shader[0], NULL);
+        return compile(&shader[0], NULL, NULL);
+    else if (type == Fragment)
+        return compile(NULL, &shader[0], NULL);
     else
-        return compile(NULL, &shader[0]);
+        return compile(NULL, NULL, &shader[0]);
 }
 
 
 ////////////////////////////////////////////////////////////
-bool Shader::loadFromFile(const std::string& vertexShaderFilename, const std::string& fragmentShaderFilename)
+bool Shader::loadFromFile(const std::string& vertexShaderFilename, const std::string& fragmentShaderFilename, const std::string& geometryShaderFilename)
 {
     // Read the vertex shader file
     std::vector<char> vertexShader;
@@ -153,8 +177,16 @@ bool Shader::loadFromFile(const std::string& vertexShaderFilename, const std::st
         return false;
     }
 
+    // Read the fragment shader file
+    std::vector<char> geometryShader;
+    if (!geometryShaderFilename.empty() && !getFileContents(geometryShaderFilename, geometryShader))
+    {
+        err() << "Failed to open geometry shader file \"" << geometryShaderFilename << "\"" << std::endl;
+        return false;
+    }
+
     // Compile the shader program
-    return compile(&vertexShader[0], &fragmentShader[0]);
+    return compile(&vertexShader[0], &fragmentShader[0], geometryShaderFilename.empty() ? NULL : &geometryShader[0]);
 }
 
 
@@ -163,17 +195,19 @@ bool Shader::loadFromMemory(const std::string& shader, Type type)
 {
     // Compile the shader program
     if (type == Vertex)
-        return compile(shader.c_str(), NULL);
+        return compile(shader.c_str(), NULL, NULL);
+    else if (type == Fragment)
+        return compile(NULL, shader.c_str(), NULL);
     else
-        return compile(NULL, shader.c_str());
+        return compile(NULL, NULL, shader.c_str());
 }
 
 
 ////////////////////////////////////////////////////////////
-bool Shader::loadFromMemory(const std::string& vertexShader, const std::string& fragmentShader)
+bool Shader::loadFromMemory(const std::string& vertexShader, const std::string& fragmentShader, const std::string& geometryShader)
 {
     // Compile the shader program
-    return compile(vertexShader.c_str(), fragmentShader.c_str());
+    return compile(vertexShader.c_str(), fragmentShader.c_str(), geometryShader.empty() ? NULL : geometryShader.c_str());
 }
 
 
@@ -190,9 +224,11 @@ bool Shader::loadFromStream(InputStream& stream, Type type)
 
     // Compile the shader program
     if (type == Vertex)
-        return compile(&shader[0], NULL);
+        return compile(&shader[0], NULL, NULL);
+    else if (type == Fragment)
+        return compile(NULL, &shader[0], NULL);
     else
-        return compile(NULL, &shader[0]);
+        return compile(NULL, NULL, &shader[0]);
 }
 
 
@@ -216,7 +252,39 @@ bool Shader::loadFromStream(InputStream& vertexShaderStream, InputStream& fragme
     }
 
     // Compile the shader program
-    return compile(&vertexShader[0], &fragmentShader[0]);
+    return compile(&vertexShader[0], &fragmentShader[0], NULL);
+}
+
+
+////////////////////////////////////////////////////////////
+bool Shader::loadFromStream(InputStream& vertexShaderStream, InputStream& fragmentShaderStream, InputStream& geometryShaderStream)
+{
+    // Read the vertex shader code from the stream
+    std::vector<char> vertexShader;
+    if (!getStreamContents(vertexShaderStream, vertexShader))
+    {
+        err() << "Failed to read vertex shader from stream" << std::endl;
+        return false;
+    }
+
+    // Read the fragment shader code from the stream
+    std::vector<char> fragmentShader;
+    if (!getStreamContents(fragmentShaderStream, fragmentShader))
+    {
+        err() << "Failed to read fragment shader from stream" << std::endl;
+        return false;
+    }
+
+    // Read the geometry shader code from the stream
+    std::vector<char> geometryShader;
+    if (!getStreamContents(geometryShaderStream, geometryShader))
+    {
+        err() << "Failed to read geometry shader from stream" << std::endl;
+        return false;
+    }
+
+    // Compile the shader program
+    return compile(&vertexShader[0], &fragmentShader[0], &geometryShader[0]);
 }
 
 
@@ -227,17 +295,26 @@ void Shader::setParameter(const std::string& name, int x) const
     {
         ensureGlContext();
 
-        // Enable program
-        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-        glCheck(glUseProgramObjectARB(m_shaderProgram));
+        GLhandleARB program = 0;
+        if (!m_parameterBlock)
+        {
+            // Enable program
+            program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(m_shaderProgram));
+        }
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
         if (location != -1)
             glCheck(glUniform1iARB(location, x));
 
-        // Disable program
-        glCheck(glUseProgramObjectARB(program));
+        if (!m_parameterBlock)
+        {
+            // Disable program
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(program));
+        }
     }
 }
 
@@ -249,17 +326,26 @@ void Shader::setParameter(const std::string& name, int x, int y) const
     {
         ensureGlContext();
 
-        // Enable program
-        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-        glCheck(glUseProgramObjectARB(m_shaderProgram));
+        GLhandleARB program = 0;
+        if (!m_parameterBlock)
+        {
+            // Enable program
+            program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(m_shaderProgram));
+        }
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
         if (location != -1)
             glCheck(glUniform2iARB(location, x, y));
 
-        // Disable program
-        glCheck(glUseProgramObjectARB(program));
+        if (!m_parameterBlock)
+        {
+            // Disable program
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(program));
+        }
     }
 }
 
@@ -271,17 +357,26 @@ void Shader::setParameter(const std::string& name, int x, int y, int z) const
     {
         ensureGlContext();
 
-        // Enable program
-        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-        glCheck(glUseProgramObjectARB(m_shaderProgram));
+        GLhandleARB program = 0;
+        if (!m_parameterBlock)
+        {
+            // Enable program
+            program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(m_shaderProgram));
+        }
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
         if (location != -1)
             glCheck(glUniform3iARB(location, x, y, z));
 
-        // Disable program
-        glCheck(glUseProgramObjectARB(program));
+        if (!m_parameterBlock)
+        {
+            // Disable program
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(program));
+        }
     }
 }
 
@@ -293,17 +388,26 @@ void Shader::setParameter(const std::string& name, int x, int y, int z, int w) c
     {
         ensureGlContext();
 
-        // Enable program
-        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-        glCheck(glUseProgramObjectARB(m_shaderProgram));
+        GLhandleARB program = 0;
+        if (!m_parameterBlock)
+        {
+            // Enable program
+            program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(m_shaderProgram));
+        }
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
         if (location != -1)
             glCheck(glUniform4iARB(location, x, y, z, w));
 
-        // Disable program
-        glCheck(glUseProgramObjectARB(program));
+        if (!m_parameterBlock)
+        {
+            // Disable program
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(program));
+        }
     }
 }
 
@@ -329,17 +433,26 @@ void Shader::setParameter(const std::string& name, float x) const
     {
         ensureGlContext();
 
-        // Enable program
-        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-        glCheck(glUseProgramObjectARB(m_shaderProgram));
+        GLhandleARB program = 0;
+        if (!m_parameterBlock)
+        {
+            // Enable program
+            program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(m_shaderProgram));
+        }
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
         if (location != -1)
             glCheck(glUniform1fARB(location, x));
 
-        // Disable program
-        glCheck(glUseProgramObjectARB(program));
+        if (!m_parameterBlock)
+        {
+            // Disable program
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(program));
+        }
     }
 }
 
@@ -351,17 +464,26 @@ void Shader::setParameter(const std::string& name, float x, float y) const
     {
         ensureGlContext();
 
-        // Enable program
-        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-        glCheck(glUseProgramObjectARB(m_shaderProgram));
+        GLhandleARB program = 0;
+        if (!m_parameterBlock)
+        {
+            // Enable program
+            program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(m_shaderProgram));
+        }
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
         if (location != -1)
             glCheck(glUniform2fARB(location, x, y));
 
-        // Disable program
-        glCheck(glUseProgramObjectARB(program));
+        if (!m_parameterBlock)
+        {
+            // Disable program
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(program));
+        }
     }
 }
 
@@ -373,17 +495,26 @@ void Shader::setParameter(const std::string& name, float x, float y, float z) co
     {
         ensureGlContext();
 
-        // Enable program
-        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-        glCheck(glUseProgramObjectARB(m_shaderProgram));
+        GLhandleARB program = 0;
+        if (!m_parameterBlock)
+        {
+            // Enable program
+            program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(m_shaderProgram));
+        }
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
         if (location != -1)
             glCheck(glUniform3fARB(location, x, y, z));
 
-        // Disable program
-        glCheck(glUseProgramObjectARB(program));
+        if (!m_parameterBlock)
+        {
+            // Disable program
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(program));
+        }
     }
 }
 
@@ -395,17 +526,26 @@ void Shader::setParameter(const std::string& name, float x, float y, float z, fl
     {
         ensureGlContext();
 
-        // Enable program
-        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-        glCheck(glUseProgramObjectARB(m_shaderProgram));
+        GLhandleARB program = 0;
+        if (!m_parameterBlock)
+        {
+            // Enable program
+            program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(m_shaderProgram));
+        }
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
         if (location != -1)
             glCheck(glUniform4fARB(location, x, y, z, w));
 
-        // Disable program
-        glCheck(glUseProgramObjectARB(program));
+        if (!m_parameterBlock)
+        {
+            // Disable program
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(program));
+        }
     }
 }
 
@@ -438,17 +578,26 @@ void Shader::setParameter(const std::string& name, const sf::Transform& transfor
     {
         ensureGlContext();
 
-        // Enable program
-        GLhandleARB program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
-        glCheck(glUseProgramObjectARB(m_shaderProgram));
+        GLhandleARB program = 0;
+        if (!m_parameterBlock)
+        {
+            // Enable program
+            program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(m_shaderProgram));
+        }
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
         if (location != -1)
             glCheck(glUniformMatrix4fvARB(location, 1, GL_FALSE, transform.getMatrix()));
 
-        // Disable program
-        glCheck(glUseProgramObjectARB(program));
+        if (!m_parameterBlock)
+        {
+            // Disable program
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(program));
+        }
     }
 }
 
@@ -502,6 +651,51 @@ void Shader::setParameter(const std::string& name, CurrentTextureType) const
 
 
 ////////////////////////////////////////////////////////////
+void Shader::setBlock(const std::string& name, const VertexBuffer& buffer) const
+{
+    if (!isUniformBufferAvailable())
+        return;
+
+    if (m_shaderProgram)
+    {
+        ensureGlContext();
+
+        GLhandleARB program = 0;
+        if (!m_parameterBlock)
+        {
+            // Enable program
+            program = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(m_shaderProgram));
+        }
+
+        VertexBuffer::bind(&buffer, GL_UNIFORM_BUFFER);
+
+        BufferTable::const_iterator it = m_boundBuffers.find(name);
+        if ((it == m_boundBuffers.end()) || (it->second != buffer.m_cacheId))
+        {
+            // Get block binding and bind the buffer
+            GLint binding = getBlockBinding(name);
+            if (binding != -1)
+            {
+                glCheck(glBindBufferBase(GL_UNIFORM_BUFFER, binding, buffer.getBufferObjectName()));
+                m_boundBuffers[name] = buffer.m_cacheId;
+            }
+        }
+
+        VertexBuffer::bind(NULL, GL_UNIFORM_BUFFER);
+
+        if (!m_parameterBlock)
+        {
+            // Disable program
+            if (program != m_shaderProgram)
+                glCheck(glUseProgramObjectARB(program));
+        }
+    }
+}
+
+
+////////////////////////////////////////////////////////////
 int Shader::getVertexAttributeLocation(const std::string& name) const
 {
     // Check the cache
@@ -515,17 +709,14 @@ int Shader::getVertexAttributeLocation(const std::string& name) const
     {
         // Not in cache, request the location from OpenGL
         int location = glGetAttribLocationARB(m_shaderProgram, name.c_str());
-        if (location != -1)
-        {
-            // Location found: add it to the cache
-            m_attributes.insert(std::make_pair(name, location));
-        }
-        else
+        if (location == -1)
         {
             // Error: location not found
             if (m_warnMissing)
                 err() << "Vertex attribute \"" << name << "\" not found in shader" << std::endl;
         }
+
+        m_attributes.insert(std::make_pair(name, location));
 
         return location;
     }
@@ -538,6 +729,35 @@ bool Shader::warnMissing(bool warn) const
     bool previousWarn = m_warnMissing;
     m_warnMissing = warn;
     return previousWarn;
+}
+
+
+////////////////////////////////////////////////////////////
+void Shader::beginParameterBlock() const
+{
+    m_parameterBlock = true;
+
+    m_blockProgram = static_cast<unsigned int>(glGetHandleARB(GL_PROGRAM_OBJECT_ARB));
+
+    if (m_blockProgram != m_shaderProgram)
+        glCheck(glUseProgramObjectARB(m_shaderProgram));
+}
+
+
+////////////////////////////////////////////////////////////
+void Shader::endParameterBlock() const
+{
+    m_parameterBlock = false;
+
+    if (m_blockProgram != m_shaderProgram)
+        glCheck(glUseProgramObjectARB(m_blockProgram));
+}
+
+
+////////////////////////////////////////////////////////////
+unsigned int Shader::getProgramObject() const
+{
+    return m_shaderProgram;
 }
 
 
@@ -578,6 +798,30 @@ bool Shader::isAvailable()
            GLEW_ARB_shader_objects       &&
            GLEW_ARB_vertex_shader        &&
            GLEW_ARB_fragment_shader;
+}
+
+
+////////////////////////////////////////////////////////////
+bool Shader::isGeometryShaderAvailable()
+{
+    return isAvailable() && GLEW_VERSION_3_2;
+}
+
+
+////////////////////////////////////////////////////////////
+bool Shader::isUniformBufferAvailable()
+{
+    static bool checked = false;
+    static bool uniformBufferSupported = false;
+
+    if (!checked)
+    {
+        checked = true;
+
+        uniformBufferSupported = isAvailable() && VertexBuffer::isAvailable() && GLEW_ARB_uniform_buffer_object;
+    }
+
+    return uniformBufferSupported;
 }
 
 
@@ -627,7 +871,7 @@ unsigned int Shader::getMaximumUniformComponents()
 
 
 ////////////////////////////////////////////////////////////
-bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCode)
+bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCode, const char* geometryShaderCode)
 {
     ensureGlContext();
 
@@ -648,6 +892,8 @@ bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCod
     m_textures.clear();
     m_params.clear();
     m_attributes.clear();
+    m_blockBindings.clear();
+    m_boundBuffers.clear();
 
     // Create the program
     m_shaderProgram = glCreateProgramObjectARB();
@@ -708,6 +954,34 @@ bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCod
         glCheck(glDeleteObjectARB(fragmentShader));
     }
 
+    // Create the geometry shader if needed
+    if (geometryShaderCode)
+    {
+        // Create and compile the shader
+        GLhandleARB geometryShader = glCreateShaderObjectARB(GL_GEOMETRY_SHADER);
+        glCheck(glShaderSourceARB(geometryShader, 1, &geometryShaderCode, NULL));
+        glCheck(glCompileShaderARB(geometryShader));
+
+        // Check the compile log
+        GLint success;
+        glCheck(glGetObjectParameterivARB(geometryShader, GL_OBJECT_COMPILE_STATUS_ARB, &success));
+        if (success == GL_FALSE)
+        {
+            char log[1024];
+            glCheck(glGetInfoLogARB(geometryShader, sizeof(log), 0, log));
+            err() << "Failed to compile geometry shader:" << std::endl
+                  << log << std::endl;
+            glCheck(glDeleteObjectARB(geometryShader));
+            glCheck(glDeleteObjectARB(m_shaderProgram));
+            m_shaderProgram = 0;
+            return false;
+        }
+
+        // Attach the shader to the program, and delete it (not needed anymore)
+        glCheck(glAttachObjectARB(m_shaderProgram, geometryShader));
+        glCheck(glDeleteObjectARB(geometryShader));
+    }
+
     // Link the program
     glCheck(glLinkProgramARB(m_shaderProgram));
 
@@ -729,6 +1003,8 @@ bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCod
     // in all contexts immediately (solves problems in multi-threaded apps)
     glCheck(glFlush());
 
+    m_id = getUniqueId();
+
     return true;
 }
 
@@ -747,7 +1023,8 @@ void Shader::bindTextures() const
     }
 
     // Make sure that the texture unit which is left active is the number 0
-    glCheck(glActiveTextureARB(GL_TEXTURE0_ARB));
+    if (!m_textures.empty())
+        glCheck(glActiveTextureARB(GL_TEXTURE0_ARB));
 }
 
 
@@ -765,19 +1042,65 @@ int Shader::getParamLocation(const std::string& name) const
     {
         // Not in cache, request the location from OpenGL
         int location = glGetUniformLocationARB(m_shaderProgram, name.c_str());
-        if (location != -1)
-        {
-            // Location found: add it to the cache
-            m_params.insert(std::make_pair(name, location));
-        }
-        else
+        if (location == -1)
         {
             // Error: location not found
             if (m_warnMissing)
                 err() << "Uniform \"" << name << "\" not found in shader" << std::endl;
         }
 
+        m_params.insert(std::make_pair(name, location));
+
         return location;
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+int Shader::getBlockBinding(const std::string& name) const
+{
+    // Check the cache
+    LocationTable::const_iterator it = m_blockBindings.find(name);
+    if (it != m_blockBindings.end())
+    {
+        // Already in cache, return it
+        return it->second;
+    }
+    else
+    {
+        // Not in cache, request the block index
+        // from OpenGL and create a new binding
+        int binding = -1;
+
+        // Check if we can create a new binding
+        static int maxBindings = -1;
+        if (maxBindings < 0)
+            glCheck(glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxBindings));
+
+        if (static_cast<int>(m_blockBindings.size()) >= (maxBindings - 1))
+        {
+            err() << "Cannot create uniform block binding, "
+                     "out of bindings (Max: " << maxBindings << ")" << std::endl;
+            return binding;
+        }
+
+        unsigned int index = 0;
+        glCheck(index = glGetUniformBlockIndex(m_shaderProgram, name.c_str()));
+        if (index != GL_INVALID_INDEX)
+        {
+            binding = static_cast<int>(m_blockBindings.size());
+            glCheck(glUniformBlockBinding(m_shaderProgram, index, static_cast<unsigned int>(binding)));
+        }
+        else
+        {
+            // Error: index not found
+            if (m_warnMissing)
+                err() << "Uniform block \"" << name << "\" not found in shader" << std::endl;
+        }
+
+        m_blockBindings.insert(std::make_pair(name, binding));
+
+        return binding;
     }
 }
 

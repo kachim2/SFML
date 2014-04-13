@@ -12,10 +12,13 @@
 #include <SFML/Graphics/VertexContainer.hpp>
 #include <SFML/Window/GlResource.hpp>
 #include <vector>
+#include <map>
 
 
 namespace sf
 {
+class Shader;
+
 ////////////////////////////////////////////////////////////
 /// \brief Define a set of one or more primitives
 ///
@@ -201,6 +204,18 @@ public :
     const void* getPointer() const;
 
     ////////////////////////////////////////////////////////////
+    /// \brief Get the name of the underlying buffer object
+    ///
+    /// This function returns the name of the underlying
+    /// OpenGL buffer object, i.e. the identifier returned
+    /// by glGenBuffers.
+    ///
+    /// \return Name of the underlying buffer object
+    ///
+    ////////////////////////////////////////////////////////////
+    unsigned int getBufferObjectName() const;
+
+    ////////////////////////////////////////////////////////////
     /// \brief Overload of assignment operator
     ///
     /// \param right Instance to assign
@@ -234,6 +249,30 @@ public :
     static void bind(const VertexBuffer* buffer);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Bind a vertex buffer to a specific target
+    ///
+    /// This function is not part of the graphics API, it mustn't be
+    /// used when drawing SFML entities. It must be used only if you
+    /// mix sf::VertexBuffer with OpenGL code.
+    ///
+    /// \code
+    /// sf::VertexBuffer buffer1, buffer2;
+    /// ...
+    /// sf::VertexBuffer::bind(&buffer1, GL_ELEMENT_ARRAY_ARB);
+    /// // draw OpenGL stuff that use buffer1 as an index buffer...
+    /// sf::VertexBuffer::bind(&buffer2, GL_ELEMENT_ARRAY_ARB);
+    /// // draw OpenGL stuff that use buffer2 as an index buffer...
+    /// sf::VertexBuffer::bind(NULL, GL_ELEMENT_ARRAY_ARB);
+    /// // draw OpenGL stuff that use no index buffer...
+    /// \endcode
+    ///
+    /// \param buffer Pointer to the vertex buffer to bind, can be null to use no vertex buffer
+    /// \param target Target to bind to
+    ///
+    ////////////////////////////////////////////////////////////
+    static void bind(const VertexBuffer* buffer, unsigned int target);
+
+    ////////////////////////////////////////////////////////////
     /// \brief Tell whether or not the system supports vertex buffers
     ///
     /// This function should always be called before using
@@ -245,9 +284,21 @@ public :
     ////////////////////////////////////////////////////////////
     static bool isAvailable();
 
+    ////////////////////////////////////////////////////////////
+    /// \brief Tell whether or not the system supports vertex array objects
+    ///
+    /// This function should always be called before using
+    /// any vertex array object features.
+    ///
+    /// \return True if vertex array objects are supported, false otherwise
+    ///
+    ////////////////////////////////////////////////////////////
+    static bool hasVertexArrayObjects();
+
 private :
 
     friend class RenderTarget;
+    friend class Shader;
 
     ////////////////////////////////////////////////////////////
     /// \brief Draw the vertex buffer to a render target
@@ -259,13 +310,19 @@ private :
     virtual void draw(RenderTarget& target, RenderStates states) const;
 
     ////////////////////////////////////////////////////////////
+    // Types
+    ////////////////////////////////////////////////////////////
+    typedef std::map<std::pair<Uint64, Uint64>, unsigned int> ArrayObjects;
+
+    ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    std::vector<Vertex> m_vertices;      ///< Vertices contained in the buffer
-    PrimitiveType       m_primitiveType; ///< Type of primitives to draw
-    unsigned int        m_bufferObject;  ///< OpenGL identifier for the buffer object
-    Uint64              m_cacheId;       ///< Unique number that identifies the vertex buffer to the render target's cache
-    mutable bool        m_needUpload;    ///< Whether the buffer data needs to be re-uploaded
+    std::vector<Vertex>  m_vertices;      ///< Vertices contained in the buffer
+    PrimitiveType        m_primitiveType; ///< Type of primitives to draw
+    unsigned int         m_bufferObject;  ///< OpenGL identifier for the buffer object
+    Uint64               m_cacheId;       ///< Unique number that identifies the vertex buffer to the render target's cache
+    mutable bool         m_needUpload;    ///< Whether the buffer data needs to be re-uploaded
+    mutable ArrayObjects m_arrayObjects;  ///< Map of (render target, shader) pairs to array object identifiers
 };
 
 } // namespace sf

@@ -232,6 +232,13 @@ const void* VertexBuffer::getPointer() const
 
 
 ////////////////////////////////////////////////////////////
+unsigned int VertexBuffer::getBufferObjectName() const
+{
+    return m_bufferObject;
+}
+
+
+////////////////////////////////////////////////////////////
 VertexBuffer& VertexBuffer::operator =(const VertexBuffer& right)
 {
     VertexBuffer temp(right);
@@ -256,25 +263,32 @@ void VertexBuffer::draw(RenderTarget& target, RenderStates states) const
 ////////////////////////////////////////////////////////////
 void VertexBuffer::bind(const VertexBuffer* buffer)
 {
+    bind(buffer, GL_ARRAY_BUFFER_ARB);
+}
+
+
+////////////////////////////////////////////////////////////
+void VertexBuffer::bind(const VertexBuffer* buffer, unsigned int target)
+{
     ensureGlContext();
 
     if (buffer && buffer->m_bufferObject)
     {
         // Bind the buffer
-        glCheck(glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffer->m_bufferObject));
+        glCheck(glBindBufferARB(target, buffer->m_bufferObject));
 
         if (buffer->m_needUpload)
         {
             // Orphan the buffer first to give the driver an opportunity to optimize streaming
-            glCheck(glBufferDataARB(GL_ARRAY_BUFFER_ARB, buffer->m_vertices.size() * sizeof(Vertex), NULL, GL_DYNAMIC_DRAW));
-            glCheck(glBufferDataARB(GL_ARRAY_BUFFER_ARB, buffer->m_vertices.size() * sizeof(Vertex), &(buffer->m_vertices[0]), GL_DYNAMIC_DRAW));
+            glCheck(glBufferDataARB(target, buffer->m_vertices.size() * sizeof(Vertex), NULL, GL_DYNAMIC_DRAW));
+            glCheck(glBufferDataARB(target, buffer->m_vertices.size() * sizeof(Vertex), &(buffer->m_vertices[0]), GL_DYNAMIC_DRAW));
             buffer->m_needUpload = false;
         }
     }
     else
     {
         // Bind no buffer
-        glCheck(glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0));
+        glCheck(glBindBufferARB(target, 0));
     }
 }
 
@@ -282,12 +296,42 @@ void VertexBuffer::bind(const VertexBuffer* buffer)
 ////////////////////////////////////////////////////////////
 bool VertexBuffer::isAvailable()
 {
-    ensureGlContext();
+    static bool checked = false;
+    static bool bufferObjectsSupported = false;
+    if (!checked)
+    {
+        checked = true;
 
-    // Make sure that GLEW is initialized
-    priv::ensureGlewInit();
+        ensureGlContext();
 
-    return GLEW_ARB_vertex_buffer_object != 0;
+        // Make sure that GLEW is initialized
+        priv::ensureGlewInit();
+
+        bufferObjectsSupported = (GLEW_ARB_vertex_buffer_object != 0);
+    }
+
+    return bufferObjectsSupported;
+}
+
+
+////////////////////////////////////////////////////////////
+bool VertexBuffer::hasVertexArrayObjects()
+{
+    static bool checked = false;
+    static bool vertexArrayObjectsSupported = false;
+    if (!checked)
+    {
+        checked = true;
+
+        ensureGlContext();
+
+        // Make sure that GLEW is initialized
+        priv::ensureGlewInit();
+
+        vertexArrayObjectsSupported = (GLEW_ARB_vertex_array_object != 0);
+    }
+
+    return vertexArrayObjectsSupported;
 }
 
 } // namespace sf

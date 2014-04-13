@@ -13,5 +13,5 @@ void RenderTarget::setView(const T& view)
     m_cache.viewChanged = true;
 
     // Update the modelview matrix for any lighting updates
-    applyTransform(Transform::Identity);
+    applyViewTransform();
 }

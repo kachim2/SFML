@@ -38,6 +38,7 @@
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/System/NonCopyable.hpp>
+#include <map>
 
 
 namespace sf
@@ -394,6 +395,12 @@ private:
     void applyTransform(const Transform& transform);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Apply the current view transform
+    ///
+    ////////////////////////////////////////////////////////////
+    void applyViewTransform();
+
+    ////////////////////////////////////////////////////////////
     /// \brief Apply a new texture
     ///
     /// \param texture Texture to apply
@@ -448,16 +455,17 @@ private:
     ////////////////////////////////////////////////////////////
     struct StatesCache
     {
-        enum {VertexCacheSize = 4};
-
         bool      glStatesSet;        ///< Are our internal GL states set yet?
         bool      viewChanged;        ///< Has the current view changed since last draw?
         BlendMode lastBlendMode;      ///< Cached blending mode
         Uint64    lastTextureId;      ///< Cached texture
         Uint64    lastVertexBufferId; ///< Cached vertex buffer
-        bool      useVertexCache;     ///< Did we previously use the vertex cache?
-        Vertex    vertexCache[VertexCacheSize]; ///< Pre-transformed vertices cache
     };
+
+    ////////////////////////////////////////////////////////////
+    // Types
+    ////////////////////////////////////////////////////////////
+    typedef std::map<unsigned int, unsigned int> ArrayAgeCount;
 
     ////////////////////////////////////////////////////////////
     // Member data
@@ -469,6 +477,10 @@ private:
     Shader*       m_defaultShader;          ///< Default non-legacy shader, only created if supported
     const Shader* m_currentNonLegacyShader; ///< Used during a draw call to set uniforms of the target shader
     const Shader* m_lastNonLegacyShader;    ///< Used during a draw call to check if shader changed since the last draw
+    Uint64        m_id;                     ///< Unique number that identifies the render target
+    ArrayAgeCount m_arrayAgeCount;          ///< Map tracking the age of vertex array objects
+    IntRect       m_previousViewport;       ///< Cached viewport
+    Color         m_previousClearColor;     ///< Cached clear color
 };
 
 #include <SFML/Graphics/RenderTarget.inl>

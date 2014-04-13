@@ -66,7 +66,6 @@ void Billboard::draw(RenderTarget& target, RenderStates states) const
                                      0.f,     0.f,     0.f,     1.f);
 
         states.transform *= billboardTransform;
-        states.useVertexCache = false;
     }
 
     Sprite::draw(target, states);

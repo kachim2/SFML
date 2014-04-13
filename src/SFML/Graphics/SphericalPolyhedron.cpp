@@ -57,7 +57,7 @@ unsigned int SphericalPolyhedron::getFaceCount() const
     if (m_geometry.empty())
         construct();
 
-    return m_geometry.size() / 3;
+    return static_cast<unsigned int>(m_geometry.size()) / 3;
 }
 
 
