@@ -38,7 +38,12 @@ m_type      (type),
 m_socket    (priv::SocketImpl::invalidSocket()),
 m_isBlocking(true)
 {
+#if defined(SFML_SYSTEM_EMSCRIPTEN)
 
+    // Emscripten/JavaScript doesn't support synchronous socket calls
+    m_isBlocking = false;
+
+#endif
 }
 
 

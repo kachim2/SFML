@@ -157,6 +157,15 @@ if(SFML_OS_WINDOWS)
     endif()
 endif()
 
+if(SFML_OS_EMSCRIPTEN)
+    if(NOT(CMAKE_CXX_FLAGS MATCHES ".*-Wno-warn-absolute-paths.*"))
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-warn-absolute-paths")
+    endif()
+    if(NOT(CMAKE_C_FLAGS MATCHES ".*-Wno-warn-absolute-paths.*"))
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-warn-absolute-paths")
+    endif()
+endif()
+
 # setup Mac OS X stuff
 if(SFML_OS_MACOSX)
     # SFML_BUILD_FRAMEWORKS needs two things:

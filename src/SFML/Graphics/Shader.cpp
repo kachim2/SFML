@@ -38,7 +38,7 @@
 #include <vector>
 
 
-#ifndef SFML_OPENGL_ES
+#if !defined(SFML_OPENGL_ES) || defined(SFML_SYSTEM_EMSCRIPTEN)
 
 #if defined(SFML_SYSTEM_MACOS) || defined(SFML_SYSTEM_IOS)
 
@@ -287,7 +287,17 @@ void Shader::setParameter(const std::string& name, float x)
     {
         ensureGlContext();
 
+#if !defined(SFML_SYSTEM_EMSCRIPTEN)
+
         GLEXT_GLhandle program = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
+
+#else
+
+        GLEXT_GLhandle program;
+        glCheck(glGetIntegerv(GLEXT_GL_PROGRAM_OBJECT, reinterpret_cast<int*>(&program)));
+
+#endif
+
         bool alreadyEnabled = (program == castToGlHandle(m_shaderProgram));
 
         // Enable program
@@ -315,7 +325,17 @@ void Shader::setParameter(const std::string& name, float x, float y)
     {
         ensureGlContext();
 
+#if !defined(SFML_SYSTEM_EMSCRIPTEN)
+
         GLEXT_GLhandle program = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
+
+#else
+
+        GLEXT_GLhandle program;
+        glCheck(glGetIntegerv(GLEXT_GL_PROGRAM_OBJECT, reinterpret_cast<int*>(&program)));
+
+#endif
+
         bool alreadyEnabled = (program == castToGlHandle(m_shaderProgram));
 
         // Enable program
@@ -343,7 +363,17 @@ void Shader::setParameter(const std::string& name, float x, float y, float z)
     {
         ensureGlContext();
 
+#if !defined(SFML_SYSTEM_EMSCRIPTEN)
+
         GLEXT_GLhandle program = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
+
+#else
+
+        GLEXT_GLhandle program;
+        glCheck(glGetIntegerv(GLEXT_GL_PROGRAM_OBJECT, reinterpret_cast<int*>(&program)));
+
+#endif
+
         bool alreadyEnabled = (program == castToGlHandle(m_shaderProgram));
 
         // Enable program
@@ -371,7 +401,17 @@ void Shader::setParameter(const std::string& name, float x, float y, float z, fl
     {
         ensureGlContext();
 
+#if !defined(SFML_SYSTEM_EMSCRIPTEN)
+
         GLEXT_GLhandle program = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
+
+#else
+
+        GLEXT_GLhandle program;
+        glCheck(glGetIntegerv(GLEXT_GL_PROGRAM_OBJECT, reinterpret_cast<int*>(&program)));
+
+#endif
+
         bool alreadyEnabled = (program == castToGlHandle(m_shaderProgram));
 
         // Enable program
@@ -420,7 +460,17 @@ void Shader::setParameter(const std::string& name, const sf::Transform& transfor
     {
         ensureGlContext();
 
+#if !defined(SFML_SYSTEM_EMSCRIPTEN)
+
         GLEXT_GLhandle program = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
+
+#else
+
+        GLEXT_GLhandle program;
+        glCheck(glGetIntegerv(GLEXT_GL_PROGRAM_OBJECT, reinterpret_cast<int*>(&program)));
+
+#endif
+
         bool alreadyEnabled = (program == castToGlHandle(m_shaderProgram));
 
         // Enable program
@@ -568,8 +618,19 @@ bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCod
     m_cacheId = getUniqueId();
     m_compatible = false;
 
+#if !defined(SFML_SYSTEM_EMSCRIPTEN)
+
     // Create the program
     GLEXT_GLhandle shaderProgram = glCheck(GLEXT_glCreateProgramObject());
+
+#else
+
+    // Create the program
+    GLEXT_GLhandle shaderProgram = glCheck(GLEXT_glCreateProgramObject());
+
+#endif
+
+
 
     // Create the vertex shader if needed
     if (vertexShaderCode)
@@ -581,21 +642,21 @@ bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCod
 
         // Check the compile log
         GLint success;
-        glCheck(GLEXT_glGetObjectParameteriv(vertexShader, GLEXT_GL_OBJECT_COMPILE_STATUS, &success));
+        glCheck(GLEXT_glGetShaderiv(vertexShader, GLEXT_GL_OBJECT_COMPILE_STATUS, &success));
         if (success == GL_FALSE)
         {
             char log[1024];
-            glCheck(GLEXT_glGetInfoLog(vertexShader, sizeof(log), 0, log));
+            glCheck(GLEXT_glGetShaderInfoLog(vertexShader, sizeof(log), 0, log));
             err() << "Failed to compile vertex shader:" << std::endl
                   << log << std::endl;
-            glCheck(GLEXT_glDeleteObject(vertexShader));
+            glCheck(GLEXT_glDeleteShader(vertexShader));
             glCheck(GLEXT_glDeleteObject(shaderProgram));
             return false;
         }
 
         // Attach the shader to the program, and delete it (not needed anymore)
         glCheck(GLEXT_glAttachObject(shaderProgram, vertexShader));
-        glCheck(GLEXT_glDeleteObject(vertexShader));
+        glCheck(GLEXT_glDeleteShader(vertexShader));
     }
 
     // Create the fragment shader if needed
@@ -608,21 +669,21 @@ bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCod
 
         // Check the compile log
         GLint success;
-        glCheck(GLEXT_glGetObjectParameteriv(fragmentShader, GLEXT_GL_OBJECT_COMPILE_STATUS, &success));
+        glCheck(GLEXT_glGetShaderiv(fragmentShader, GLEXT_GL_OBJECT_COMPILE_STATUS, &success));
         if (success == GL_FALSE)
         {
             char log[1024];
-            glCheck(GLEXT_glGetInfoLog(fragmentShader, sizeof(log), 0, log));
+            glCheck(GLEXT_glGetShaderInfoLog(fragmentShader, sizeof(log), 0, log));
             err() << "Failed to compile fragment shader:" << std::endl
                   << log << std::endl;
-            glCheck(GLEXT_glDeleteObject(fragmentShader));
+            glCheck(GLEXT_glDeleteShader(fragmentShader));
             glCheck(GLEXT_glDeleteObject(shaderProgram));
             return false;
         }
 
         // Attach the shader to the program, and delete it (not needed anymore)
         glCheck(GLEXT_glAttachObject(shaderProgram, fragmentShader));
-        glCheck(GLEXT_glDeleteObject(fragmentShader));
+        glCheck(GLEXT_glDeleteShader(fragmentShader));
     }
 
     // Bind SFML-related attributes to known indices

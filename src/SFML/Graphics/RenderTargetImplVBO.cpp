@@ -86,15 +86,25 @@ m_bufferSize    (0)
     m_cache.clearColor = Color(0, 0, 0, 0);
 
     static const std::string vertexShaderSource =
+#if !defined(SFML_OPENGL_ES)
         "#version 130\n"
+#endif
         "uniform mat4 sf_ModelViewMatrix;\n"
         "uniform mat4 sf_ProjectionMatrix;\n"
         "uniform mat4 sf_TextureMatrix;\n"
+#if !defined(SFML_OPENGL_ES)
         "in vec4 sf_Vertex;\n"
         "in vec4 sf_Color;\n"
         "in vec4 sf_MultiTexCoord;\n"
         "out vec4 sf_FrontColor;\n"
         "out vec2 sf_TexCoord;\n"
+#else
+        "attribute vec4 sf_Vertex;\n"
+        "attribute vec4 sf_Color;\n"
+        "attribute vec4 sf_MultiTexCoord;\n"
+        "varying vec4 sf_FrontColor;\n"
+        "varying vec2 sf_TexCoord;\n"
+#endif
         "void main() {\n"
         "    gl_Position = sf_ProjectionMatrix * sf_ModelViewMatrix * sf_Vertex;\n"
         "    sf_FrontColor = sf_Color;\n"
@@ -102,13 +112,25 @@ m_bufferSize    (0)
         "}";
 
     static const std::string fragmentShaderSource =
+#if !defined(SFML_OPENGL_ES)
         "#version 130\n"
+#endif
         "uniform sampler2D textureSampler;\n"
+#if !defined(SFML_OPENGL_ES)
         "in vec4 sf_FrontColor;\n"
         "in vec2 sf_TexCoord;\n"
         "out vec4 sf_FragColor;\n"
+#else
+        "precision mediump float;\n"
+        "varying vec4 sf_FrontColor;\n"
+        "varying vec2 sf_TexCoord;\n"
+#endif
         "void main() {\n"
+#if !defined(SFML_OPENGL_ES)
         "    sf_FragColor = sf_FrontColor * texture2D(textureSampler, sf_TexCoord);\n"
+#else
+        "    gl_FragColor = sf_FrontColor * texture2D(textureSampler, sf_TexCoord);\n"
+#endif
         "}";
 
     m_defaultShader.loadFromMemory(vertexShaderSource, fragmentShaderSource);
@@ -316,7 +338,15 @@ void RenderTargetImplVBO::pushGLStates()
             return;
         }
 
+#if !defined(SFML_SYSTEM_EMSCRIPTEN)
+
         m_savedStates.currentProgram = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
+
+#else
+
+        glCheck(glGetIntegerv(GLEXT_GL_PROGRAM_OBJECT, reinterpret_cast<int*>(&m_savedStates.currentProgram)));
+
+#endif
 
         glCheck(glGetIntegerv(GLEXT_GL_ARRAY_BUFFER_BINDING, &m_savedStates.boundArrayBuffer));
 

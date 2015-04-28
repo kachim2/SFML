@@ -34,6 +34,9 @@
 #ifdef SFML_SYSTEM_IOS
     #include <OpenAl/al.h>
     #include <OpenAl/alc.h>
+#elif defined(SFML_SYSTEM_EMSCRIPTEN)
+    #include <AL/al.h>
+    #include <AL/alc.h>
 #else
     #include <al.h>
     #include <alc.h>

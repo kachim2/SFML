@@ -30,7 +30,136 @@
 ////////////////////////////////////////////////////////////
 #include <SFML/Config.hpp>
 
-#ifdef SFML_OPENGL_ES
+#if defined(SFML_SYSTEM_EMSCRIPTEN)
+
+    #include <SFML/OpenGL.hpp>
+
+    // SFML Emscripten makes use of the OpenGL ES 2.0 interface (maps to WebGL 1.0)
+    // Some extensions only incorporated by 2.0 are also required
+    // OpenGL ES 1.0 is defined relative to OpenGL 1.3
+    // OpenGL ES 1.1 is defined relative to OpenGL 1.5
+    // OpenGL ES 2.0 is defined relative to OpenGL 2.0
+    // All functionality beyond that is optional
+    // and has to be checked for prior to use
+
+    // Core since 1.0
+    #define GLEXT_multitexture                        true
+    #define GLEXT_texture_edge_clamp                  true
+    #define GLEXT_blend_minmax                        true
+    #define GLEXT_glClientActiveTexture               glClientActiveTexture
+    #define GLEXT_glActiveTexture                     glActiveTexture
+    #define GLEXT_GL_TEXTURE0                         GL_TEXTURE0
+    #define GLEXT_GL_CLAMP_TO_EDGE                    GL_CLAMP_TO_EDGE
+    #define GL_CLAMP                                  GL_CLAMP_TO_EDGE
+
+    // The following extensions are listed chronologically
+    // Extension macro first, followed by tokens then
+    // functions according to the corresponding specification
+
+    // The following extensions are required.
+
+    // Core since 2.0 - OES_blend_subtract
+    #define GLEXT_blend_subtract                      true
+    #define GLEXT_glBlendEquation                     glBlendEquation
+    #define GLEXT_GL_FUNC_ADD                         GL_FUNC_ADD
+    #define GLEXT_GL_FUNC_SUBTRACT                    GL_FUNC_SUBTRACT
+
+    // The following extensions are optional.
+
+    // Core since 2.0 - OES_blend_func_separate
+    #define GLEXT_blend_func_separate                 true
+    #define GLEXT_glBlendFuncSeparate                 glBlendFuncSeparate
+    #define GLEXT_GL_BLEND_DST_RGB                    GL_BLEND_DST_RGB
+    #define GLEXT_GL_BLEND_SRC_RGB                    GL_BLEND_SRC_RGB
+    #define GLEXT_GL_BLEND_DST_ALPHA                  GL_BLEND_DST_ALPHA
+    #define GLEXT_GL_BLEND_SRC_ALPHA                  GL_BLEND_SRC_ALPHA
+
+    // Core since 2.0 - OES_blend_equation_separate
+    #define GLEXT_blend_equation_separate             true
+    #define GLEXT_glBlendEquationSeparate             glBlendEquationSeparate
+    #define GLEXT_GL_BLEND_EQUATION_RGB               GL_BLEND_EQUATION_RGB
+    #define GLEXT_GL_BLEND_EQUATION_ALPHA             GL_BLEND_EQUATION_ALPHA
+
+    // Core since 2.0 - OES_texture_npot
+    #define GLEXT_texture_non_power_of_two            true
+
+    // Core since 2.0 - OES_framebuffer_object
+    #define GLEXT_framebuffer_object                  true
+    #define GLEXT_glBindRenderbuffer                  glBindRenderbuffer
+    #define GLEXT_glDeleteRenderbuffers               glDeleteRenderbuffers
+    #define GLEXT_glGenRenderbuffers                  glGenRenderbuffers
+    #define GLEXT_glRenderbufferStorage               glRenderbufferStorage
+    #define GLEXT_glBindFramebuffer                   glBindFramebuffer
+    #define GLEXT_glDeleteFramebuffers                glDeleteFramebuffers
+    #define GLEXT_glGenFramebuffers                   glGenFramebuffers
+    #define GLEXT_glCheckFramebufferStatus            glCheckFramebufferStatus
+    #define GLEXT_glFramebufferTexture2D              glFramebufferTexture2D
+    #define GLEXT_glFramebufferRenderbuffer           glFramebufferRenderbuffer
+    #define GLEXT_GL_FRAMEBUFFER                      GL_FRAMEBUFFER
+    #define GLEXT_GL_RENDERBUFFER                     GL_RENDERBUFFER
+    #define GLEXT_GL_DEPTH_COMPONENT                  GL_DEPTH_COMPONENT16
+    #define GLEXT_GL_COLOR_ATTACHMENT0                GL_COLOR_ATTACHMENT0
+    #define GLEXT_GL_DEPTH_ATTACHMENT                 GL_DEPTH_ATTACHMENT
+    #define GLEXT_GL_FRAMEBUFFER_COMPLETE             GL_FRAMEBUFFER_COMPLETE
+    #define GLEXT_GL_FRAMEBUFFER_BINDING              GL_FRAMEBUFFER_BINDING
+    #define GLEXT_GL_INVALID_FRAMEBUFFER_OPERATION    GL_INVALID_FRAMEBUFFER_OPERATION
+
+    // Uncategorized, for now...
+    #define GLEXT_vertex_buffer_object                true
+    #define GLEXT_glBindBuffer                        glBindBuffer
+    #define GLEXT_glDeleteBuffers                     glDeleteBuffers
+    #define GLEXT_glGenBuffers                        glGenBuffers
+    #define GLEXT_glBufferData                        glBufferData
+    #define GLEXT_GL_ARRAY_BUFFER                     GL_ARRAY_BUFFER
+    #define GLEXT_GL_ARRAY_BUFFER_BINDING             GL_ARRAY_BUFFER_BINDING
+    #define GLEXT_GL_STREAM_DRAW                      GL_STREAM_DRAW
+
+    #define GLEXT_vertex_program                      true
+    #define GLEXT_glVertexAttribPointer               glVertexAttribPointer
+    #define GLEXT_glEnableVertexAttribArray           glEnableVertexAttribArray
+    #define GLEXT_glDisableVertexAttribArray          glDisableVertexAttribArray
+    #define GLEXT_glGetVertexAttribiv                 glGetVertexAttribiv
+    #define GLEXT_GL_VERTEX_ATTRIB_ARRAY_ENABLED      GL_VERTEX_ATTRIB_ARRAY_ENABLED
+
+    #define GLEXT_shading_language_100                true
+
+    #define GLEXT_shader_objects                      true
+    #define GLEXT_glDeleteObject                      glDeleteProgram
+    #define GLEXT_glDeleteShader                      glDeleteShader
+    #define GLEXT_glGetHandle                         glGetHandle
+    #define GLEXT_glCreateShaderObject                glCreateShader
+    #define GLEXT_glShaderSource                      glShaderSource
+    #define GLEXT_glCompileShader                     glCompileShader
+    #define GLEXT_glCreateProgramObject               glCreateProgram
+    #define GLEXT_glAttachObject                      glAttachShader
+    #define GLEXT_glLinkProgram                       glLinkProgram
+    #define GLEXT_glUseProgramObject                  glUseProgram
+    #define GLEXT_glUniform1f                         glUniform1f
+    #define GLEXT_glUniform2f                         glUniform2f
+    #define GLEXT_glUniform3f                         glUniform3f
+    #define GLEXT_glUniform4f                         glUniform4f
+    #define GLEXT_glUniform1i                         glUniform1i
+    #define GLEXT_glUniformMatrix4fv                  glUniformMatrix4fv
+    #define GLEXT_glGetObjectParameteriv              glGetProgramiv
+    #define GLEXT_glGetShaderiv                       glGetShaderiv
+    #define GLEXT_glGetInfoLog                        glGetProgramInfoLog
+    #define GLEXT_glGetShaderInfoLog                  glGetShaderInfoLog
+    #define GLEXT_glGetUniformLocation                glGetUniformLocation
+    #define GLEXT_GL_PROGRAM_OBJECT                   GL_CURRENT_PROGRAM
+    #define GLEXT_GL_OBJECT_COMPILE_STATUS            GL_COMPILE_STATUS
+    #define GLEXT_GL_OBJECT_LINK_STATUS               GL_LINK_STATUS
+    #define GLEXT_GLhandle                            GLuint
+
+    #define GLEXT_vertex_shader                       true
+    #define GLEXT_glBindAttribLocation                glBindAttribLocation
+    #define GLEXT_glGetAttribLocation                 glGetAttribLocation
+    #define GLEXT_GL_VERTEX_SHADER                    GL_VERTEX_SHADER
+    #define GLEXT_GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS
+
+    #define GLEXT_fragment_shader                     true
+    #define GLEXT_GL_FRAGMENT_SHADER                  GL_FRAGMENT_SHADER
+
+#elif defined(SFML_OPENGL_ES)
 
     #include <SFML/OpenGL.hpp>
 
@@ -205,6 +334,7 @@
     // Core since 2.0 - ARB_shader_objects
     #define GLEXT_shader_objects                      sfogl_ext_ARB_shader_objects
     #define GLEXT_glDeleteObject                      glDeleteObjectARB
+    #define GLEXT_glDeleteShader                      glDeleteObjectARB
     #define GLEXT_glGetHandle                         glGetHandleARB
     #define GLEXT_glCreateShaderObject                glCreateShaderObjectARB
     #define GLEXT_glShaderSource                      glShaderSourceARB
@@ -220,7 +350,9 @@
     #define GLEXT_glUniform1i                         glUniform1iARB
     #define GLEXT_glUniformMatrix4fv                  glUniformMatrix4fvARB
     #define GLEXT_glGetObjectParameteriv              glGetObjectParameterivARB
+    #define GLEXT_glGetShaderiv                       glGetObjectParameterivARB
     #define GLEXT_glGetInfoLog                        glGetInfoLogARB
+    #define GLEXT_glGetShaderInfoLog                  glGetInfoLogARB
     #define GLEXT_glGetUniformLocation                glGetUniformLocationARB
     #define GLEXT_GL_PROGRAM_OBJECT                   GL_PROGRAM_OBJECT_ARB
     #define GLEXT_GL_OBJECT_COMPILE_STATUS            GL_OBJECT_COMPILE_STATUS_ARB

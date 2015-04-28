@@ -66,6 +66,11 @@ namespace sf
     // Window handle is ANativeWindow (void*) on Android
     typedef void* WindowHandle;
 
+#elif defined(SFML_SYSTEM_EMSCRIPTEN)
+
+    // Window handle is int on Emscripten
+    typedef int WindowHandle;
+
 #endif
 
 } // namespace sf

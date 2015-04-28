@@ -43,6 +43,8 @@ m_impl       (NULL),
 m_defaultView(),
 m_view       ()
 {
+#if !defined(SFML_SYSTEM_EMSCRIPTEN)
+
     // Create the implementation
     if ((hint != Default) && priv::RenderTargetImplVBO::isAvailable())
     {
@@ -57,6 +59,12 @@ m_view       ()
         // Use default implementation
         m_impl = new priv::RenderTargetImplDefault(*this);
     }
+
+#else
+
+    m_impl = new priv::RenderTargetImplVBO(*this);
+
+#endif
 }
 
 

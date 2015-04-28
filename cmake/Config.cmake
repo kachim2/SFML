@@ -64,6 +64,11 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Android")
 
     # use the OpenGL ES implementation on Android
     set(OPENGL_ES 1)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set(SFML_OS_EMSCRIPTEN 1)
+
+    # use the OpenGL ES implementation on Emscripten
+    set(OPENGL_ES 1)
 else()
     message(FATAL_ERROR "Unsupported operating system")
     return()
@@ -110,7 +115,7 @@ endif()
 # define the install directory for miscellaneous files
 if(SFML_OS_WINDOWS OR SFML_OS_IOS)
     set(INSTALL_MISC_DIR .)
-elseif(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_MACOSX)
+elseif(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_MACOSX OR SFML_OS_EMSCRIPTEN)
     set(INSTALL_MISC_DIR share/SFML)
 elseif(SFML_OS_ANDROID)
     set(INSTALL_MISC_DIR ${ANDROID_NDK}/sources/sfml)

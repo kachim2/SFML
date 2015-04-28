@@ -61,6 +61,11 @@
         #include <SFML/Window/iOS/EaglContext.hpp>
         typedef sf::priv::EaglContext ContextType;
 
+    #elif defined(SFML_SYSTEM_EMSCRIPTEN)
+
+        #include <SFML/Window/Emscripten/EglContext.hpp>
+        typedef sf::priv::EglContext ContextType;
+
     #else
 
         #include <SFML/Window/EglContext.hpp>
@@ -374,6 +379,24 @@ void GlContext::initialize()
     int majorVersion = 0;
     int minorVersion = 0;
 
+#if defined(SFML_SYSTEM_EMSCRIPTEN)
+
+    const GLubyte* version = glGetString(GL_VERSION);
+    if (version)
+    {
+        // The beginning of the returned string is "WebGL major.minor" (this is standard)
+        m_settings.majorVersion = version[6] - '0';
+        m_settings.minorVersion = version[8] - '0';
+    }
+    else
+    {
+        // Can't get the version number, assume 1.0
+        m_settings.majorVersion = 1;
+        m_settings.minorVersion = 0;
+    }
+
+#else
+
     // Try the new way first
     glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
     glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
@@ -462,6 +485,8 @@ void GlContext::initialize()
         }
     }
 
+#endif
+
     // Enable antialiasing if needed
     if (m_settings.antialiasingLevel > 0)
         glEnable(GL_MULTISAMPLE);
@@ -488,6 +513,15 @@ void GlContext::checkSettings(const ContextSettings& requestedSettings)
 
     int version = m_settings.majorVersion * 10 + m_settings.minorVersion;
     int requestedVersion = requestedSettings.majorVersion * 10 + requestedSettings.minorVersion;
+
+    const char* versionString = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+
+#if defined(SFML_SYSTEM_EMSCRIPTEN)
+
+    // Bypass version checking for WebGL contexts
+    version = 1000000;
+
+#endif
 
     if ((m_settings.attributeFlags    != requestedSettings.attributeFlags)    ||
         (version                      <  requestedVersion)           ||

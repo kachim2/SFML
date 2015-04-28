@@ -68,6 +68,11 @@
     #include <GLES/gl.h>
     #include <GLES/glext.h>
 
+#elif defined (SFML_SYSTEM_EMSCRIPTEN)
+
+    #include <GLES2/gl2.h>
+    #include <GLES2/gl2ext.h>
+
 #endif
 
 
