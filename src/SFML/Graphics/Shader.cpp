@@ -56,6 +56,17 @@ namespace
 {
     sf::Mutex mutex;
 
+    // Thread-safe unique identifier generator,
+    // is used for states cache (see RenderTarget)
+    sf::Uint64 getUniqueId()
+    {
+        sf::Lock lock(mutex);
+
+        static sf::Uint64 id = 1; // start at 1, zero is "no texture"
+
+        return id++;
+    }
+
     GLint checkMaxTextureUnits()
     {
         GLint maxUnits = 0;
@@ -146,7 +157,9 @@ Shader::Shader() :
 m_shaderProgram (0),
 m_currentTexture(-1),
 m_textures      (),
-m_params        ()
+m_params        (),
+m_cacheId       (getUniqueId()),
+m_compatible    (false)
 {
 }
 
@@ -274,9 +287,12 @@ void Shader::setParameter(const std::string& name, float x)
     {
         ensureGlContext();
 
-        // Enable program
         GLEXT_GLhandle program = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
-        glCheck(GLEXT_glUseProgramObject(castToGlHandle(m_shaderProgram)));
+        bool alreadyEnabled = (program == castToGlHandle(m_shaderProgram));
+
+        // Enable program
+        if (!alreadyEnabled)
+            glCheck(GLEXT_glUseProgramObject(castToGlHandle(m_shaderProgram)));
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
@@ -286,7 +302,8 @@ void Shader::setParameter(const std::string& name, float x)
         }
 
         // Disable program
-        glCheck(GLEXT_glUseProgramObject(program));
+        if (!alreadyEnabled)
+            glCheck(GLEXT_glUseProgramObject(program));
     }
 }
 
@@ -298,9 +315,12 @@ void Shader::setParameter(const std::string& name, float x, float y)
     {
         ensureGlContext();
 
-        // Enable program
         GLEXT_GLhandle program = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
-        glCheck(GLEXT_glUseProgramObject(castToGlHandle(m_shaderProgram)));
+        bool alreadyEnabled = (program == castToGlHandle(m_shaderProgram));
+
+        // Enable program
+        if (!alreadyEnabled)
+            glCheck(GLEXT_glUseProgramObject(castToGlHandle(m_shaderProgram)));
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
@@ -310,7 +330,8 @@ void Shader::setParameter(const std::string& name, float x, float y)
         }
 
         // Disable program
-        glCheck(GLEXT_glUseProgramObject(program));
+        if (!alreadyEnabled)
+            glCheck(GLEXT_glUseProgramObject(program));
     }
 }
 
@@ -322,9 +343,12 @@ void Shader::setParameter(const std::string& name, float x, float y, float z)
     {
         ensureGlContext();
 
-        // Enable program
         GLEXT_GLhandle program = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
-        glCheck(GLEXT_glUseProgramObject(castToGlHandle(m_shaderProgram)));
+        bool alreadyEnabled = (program == castToGlHandle(m_shaderProgram));
+
+        // Enable program
+        if (!alreadyEnabled)
+            glCheck(GLEXT_glUseProgramObject(castToGlHandle(m_shaderProgram)));
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
@@ -334,7 +358,8 @@ void Shader::setParameter(const std::string& name, float x, float y, float z)
         }
 
         // Disable program
-        glCheck(GLEXT_glUseProgramObject(program));
+        if (!alreadyEnabled)
+            glCheck(GLEXT_glUseProgramObject(program));
     }
 }
 
@@ -346,9 +371,12 @@ void Shader::setParameter(const std::string& name, float x, float y, float z, fl
     {
         ensureGlContext();
 
-        // Enable program
         GLEXT_GLhandle program = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
-        glCheck(GLEXT_glUseProgramObject(castToGlHandle(m_shaderProgram)));
+        bool alreadyEnabled = (program == castToGlHandle(m_shaderProgram));
+
+        // Enable program
+        if (!alreadyEnabled)
+            glCheck(GLEXT_glUseProgramObject(castToGlHandle(m_shaderProgram)));
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
@@ -358,7 +386,8 @@ void Shader::setParameter(const std::string& name, float x, float y, float z, fl
         }
 
         // Disable program
-        glCheck(GLEXT_glUseProgramObject(program));
+        if (!alreadyEnabled)
+            glCheck(GLEXT_glUseProgramObject(program));
     }
 }
 
@@ -391,9 +420,12 @@ void Shader::setParameter(const std::string& name, const sf::Transform& transfor
     {
         ensureGlContext();
 
-        // Enable program
         GLEXT_GLhandle program = glCheck(GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
-        glCheck(GLEXT_glUseProgramObject(castToGlHandle(m_shaderProgram)));
+        bool alreadyEnabled = (program == castToGlHandle(m_shaderProgram));
+
+        // Enable program
+        if (!alreadyEnabled)
+            glCheck(GLEXT_glUseProgramObject(castToGlHandle(m_shaderProgram)));
 
         // Get parameter location and assign it new values
         GLint location = getParamLocation(name);
@@ -403,7 +435,8 @@ void Shader::setParameter(const std::string& name, const sf::Transform& transfor
         }
 
         // Disable program
-        glCheck(GLEXT_glUseProgramObject(program));
+        if (!alreadyEnabled)
+            glCheck(GLEXT_glUseProgramObject(program));
     }
 }
 
@@ -532,6 +565,8 @@ bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCod
     m_currentTexture = -1;
     m_textures.clear();
     m_params.clear();
+    m_cacheId = getUniqueId();
+    m_compatible = false;
 
     // Create the program
     GLEXT_GLhandle shaderProgram = glCheck(GLEXT_glCreateProgramObject());
@@ -590,6 +625,11 @@ bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCod
         glCheck(GLEXT_glDeleteObject(fragmentShader));
     }
 
+    // Bind SFML-related attributes to known indices
+    glCheck(GLEXT_glBindAttribLocation(shaderProgram, 0, "sf_Vertex"));
+    glCheck(GLEXT_glBindAttribLocation(shaderProgram, 1, "sf_Color"));
+    glCheck(GLEXT_glBindAttribLocation(shaderProgram, 2, "sf_MultiTexCoord"));
+
     // Link the program
     glCheck(GLEXT_glLinkProgram(shaderProgram));
 
@@ -605,6 +645,29 @@ bool Shader::compile(const char* vertexShaderCode, const char* fragmentShaderCod
         glCheck(GLEXT_glDeleteObject(shaderProgram));
         return false;
     }
+
+    m_compatible = true;
+
+    // Verify that all required attributes are bound
+    int vertexIndex = glCheck(GLEXT_glGetAttribLocation(shaderProgram, "sf_Vertex"));
+    int colorIndex = glCheck(GLEXT_glGetAttribLocation(shaderProgram, "sf_Color"));
+    int texCoordIndex = glCheck(GLEXT_glGetAttribLocation(shaderProgram, "sf_MultiTexCoord"));
+
+    if ((vertexIndex != 0) || (colorIndex != 1) || (texCoordIndex != 2))
+        m_compatible = false;
+
+    // Verify that all required uniforms are present
+    int modelViewlocation = glCheck(GLEXT_glGetUniformLocation(shaderProgram, "sf_ModelViewMatrix"));
+    m_params.insert(std::make_pair("sf_ModelViewMatrix", modelViewlocation));
+    int projectionlocation = glCheck(GLEXT_glGetUniformLocation(shaderProgram, "sf_ProjectionMatrix"));
+    m_params.insert(std::make_pair("sf_ProjectionMatrix", projectionlocation));
+    int textureMatrixlocation = glCheck(GLEXT_glGetUniformLocation(shaderProgram, "sf_TextureMatrix"));
+    m_params.insert(std::make_pair("sf_TextureMatrix", textureMatrixlocation));
+    int textureSamplerlocation = glCheck(GLEXT_glGetUniformLocation(shaderProgram, "textureSampler"));
+    m_params.insert(std::make_pair("textureSampler", textureSamplerlocation));
+
+    if ((modelViewlocation == -1) || (projectionlocation == -1) || (textureMatrixlocation == -1) || (textureSamplerlocation == -1))
+        m_compatible = false;
 
     m_shaderProgram = castFromGlHandle(shaderProgram);
 

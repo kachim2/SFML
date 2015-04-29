@@ -8,6 +8,8 @@ EXT_blend_minmax
 EXT_blend_subtract
 ARB_multitexture
 EXT_blend_func_separate
+ARB_vertex_buffer_object
+ARB_vertex_program
 ARB_shading_language_100
 ARB_shader_objects
 ARB_vertex_shader

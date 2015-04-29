@@ -480,6 +480,16 @@ protected:
     virtual void onCreate();
 
     ////////////////////////////////////////////////////////////
+    /// \brief Function called before the window is destroyed
+    ///
+    /// This function is called so that derived classes can
+    /// perform their own specific de-initialization right before
+    /// the window is destroyed.
+    ///
+    ////////////////////////////////////////////////////////////
+    virtual void onDestroy();
+
+    ////////////////////////////////////////////////////////////
     /// \brief Function called after the window has been resized
     ///
     /// This function is called so that derived classes can

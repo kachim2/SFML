@@ -32,14 +32,16 @@
 namespace sf
 {
 ////////////////////////////////////////////////////////////
-RenderWindow::RenderWindow()
+RenderWindow::RenderWindow(ImplementationHint hint) :
+RenderTarget(hint)
 {
     // Nothing to do
 }
 
 
 ////////////////////////////////////////////////////////////
-RenderWindow::RenderWindow(VideoMode mode, const String& title, Uint32 style, const ContextSettings& settings)
+RenderWindow::RenderWindow(VideoMode mode, const String& title, Uint32 style, const ContextSettings& settings, ImplementationHint hint) :
+RenderTarget(hint)
 {
     // Don't call the base class constructor because it contains virtual function calls
     create(mode, title, style, settings);
@@ -47,7 +49,8 @@ RenderWindow::RenderWindow(VideoMode mode, const String& title, Uint32 style, co
 
 
 ////////////////////////////////////////////////////////////
-RenderWindow::RenderWindow(WindowHandle handle, const ContextSettings& settings)
+RenderWindow::RenderWindow(WindowHandle handle, const ContextSettings& settings, ImplementationHint hint) :
+RenderTarget(hint)
 {
     // Don't call the base class constructor because it contains virtual function calls
     create(handle, settings);
@@ -104,6 +107,14 @@ void RenderWindow::onCreate()
 {
     // Just initialize the render target part
     RenderTarget::initialize();
+}
+
+
+////////////////////////////////////////////////////////////
+void RenderWindow::onDestroy()
+{
+    // Just initialize the render target part
+    RenderTarget::deinitialize();
 }
 
 

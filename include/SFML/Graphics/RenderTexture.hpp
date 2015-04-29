@@ -54,10 +54,12 @@ public:
     /// Constructs an empty, invalid render-texture. You must
     /// call create to have a valid render-texture.
     ///
+    /// \param hint Which underlying implementation to prefer
+    ///
     /// \see create
     ///
     ////////////////////////////////////////////////////////////
-    RenderTexture();
+    RenderTexture(ImplementationHint hint = Default);
 
     ////////////////////////////////////////////////////////////
     /// \brief Destructor

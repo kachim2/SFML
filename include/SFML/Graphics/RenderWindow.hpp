@@ -51,8 +51,10 @@ public:
     /// This constructor doesn't actually create the window,
     /// use the other constructors or call create() to do so.
     ///
+    /// \param hint Which underlying implementation to prefer
+    ///
     ////////////////////////////////////////////////////////////
-    RenderWindow();
+    RenderWindow(ImplementationHint hint = Default);
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct a new window
@@ -71,9 +73,10 @@ public:
     /// \param title    Title of the window
     /// \param style    %Window style, a bitwise OR combination of sf::Style enumerators
     /// \param settings Additional settings for the underlying OpenGL context
+    /// \param hint Which underlying implementation to prefer
     ///
     ////////////////////////////////////////////////////////////
-    RenderWindow(VideoMode mode, const String& title, Uint32 style = Style::Default, const ContextSettings& settings = ContextSettings());
+    RenderWindow(VideoMode mode, const String& title, Uint32 style = Style::Default, const ContextSettings& settings = ContextSettings(), ImplementationHint hint = Default);
 
     ////////////////////////////////////////////////////////////
     /// \brief Construct the window from an existing control
@@ -89,9 +92,10 @@ public:
     /// \param handle   Platform-specific handle of the control (\a HWND on
     ///                 Windows, \a %Window on Linux/FreeBSD, \a NSWindow on OS X)
     /// \param settings Additional settings for the underlying OpenGL context
+    /// \param hint Which underlying implementation to prefer
     ///
     ////////////////////////////////////////////////////////////
-    explicit RenderWindow(WindowHandle handle, const ContextSettings& settings = ContextSettings());
+    explicit RenderWindow(WindowHandle handle, const ContextSettings& settings = ContextSettings(), ImplementationHint hint = Default);
 
     ////////////////////////////////////////////////////////////
     /// \brief Destructor
@@ -139,6 +143,16 @@ protected:
     ///
     ////////////////////////////////////////////////////////////
     virtual void onCreate();
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Function called before the window is destroyed
+    ///
+    /// This function is called so that derived classes can
+    /// perform their own specific de-initialization right before
+    /// the window is destroyed.
+    ///
+    ////////////////////////////////////////////////////////////
+    virtual void onDestroy();
 
     ////////////////////////////////////////////////////////////
     /// \brief Function called after the window has been resized

@@ -83,6 +83,17 @@ set(RENDER_TEXTURE_SRC
 )
 source_group("render texture" FILES ${RENDER_TEXTURE_SRC})
 
+# render-target sources
+set(RENDER_TARGET_SRC
+    ${SRCROOT}/RenderTargetImpl.cpp
+    ${SRCROOT}/RenderTargetImpl.hpp
+    ${SRCROOT}/RenderTargetImplVBO.cpp
+    ${SRCROOT}/RenderTargetImplVBO.hpp
+    ${SRCROOT}/RenderTargetImplDefault.cpp
+    ${SRCROOT}/RenderTargetImplDefault.hpp
+)
+source_group("render target" FILES ${RENDER_TARGET_SRC})
+
 # stb_image sources
 include_directories("${PROJECT_SOURCE_DIR}/extlibs/headers/stb_image")
 
@@ -152,6 +163,6 @@ endif()
 
 # define the sfml-graphics target
 sfml_add_library(sfml-graphics
-                 SOURCES ${SRC} ${DRAWABLES_SRC} ${RENDER_TEXTURE_SRC} ${STB_SRC}
+                 SOURCES ${SRC} ${DRAWABLES_SRC} ${RENDER_TEXTURE_SRC} ${RENDER_TARGET_SRC} ${STB_SRC}
                  DEPENDS sfml-window sfml-system
                  EXTERNAL_LIBS ${GRAPHICS_EXT_LIBS})

@@ -19,7 +19,7 @@ int main()
     contextSettings.depthBits = 24;
 
     // Create the main window
-    sf::RenderWindow window(sf::VideoMode(800, 600), "SFML graphics with OpenGL", sf::Style::Default, contextSettings);
+    sf::RenderWindow window(sf::VideoMode(800, 600), "SFML graphics with OpenGL", sf::Style::Default, contextSettings, sf::RenderWindow::Automatic);
     window.setVerticalSyncEnabled(true);
 
     // Create a sprite for the background
@@ -46,6 +46,7 @@ int main()
     // Load an OpenGL texture.
     // We could directly use a sf::Texture as an OpenGL texture (with its Bind() member function),
     // but here we want more control on it (generate mipmaps, ...) so we create a new one from an image
+    glEnable(GL_TEXTURE_2D);
     GLuint texture = 0;
     {
         sf::Image image;

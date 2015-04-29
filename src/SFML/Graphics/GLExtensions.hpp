@@ -70,6 +70,10 @@
         #define GLEXT_blend_func_separate                 GL_OES_blend_func_separate
     #endif
     #define GLEXT_glBlendFuncSeparate                 glBlendFuncSeparateOES
+    #define GLEXT_GL_BLEND_DST_RGB                    GL_BLEND_DST_RGB_OES
+    #define GLEXT_GL_BLEND_SRC_RGB                    GL_BLEND_SRC_RGB_OES
+    #define GLEXT_GL_BLEND_DST_ALPHA                  GL_BLEND_DST_ALPHA_OES
+    #define GLEXT_GL_BLEND_SRC_ALPHA                  GL_BLEND_SRC_ALPHA_OES
 
     // Core since 2.0 - OES_blend_equation_separate
     #ifdef SFML_SYSTEM_ANDROID
@@ -79,6 +83,8 @@
         #define GLEXT_blend_equation_separate             GL_OES_blend_equation_separate
     #endif
     #define GLEXT_glBlendEquationSeparate             glBlendEquationSeparateOES
+    #define GLEXT_GL_BLEND_EQUATION_RGB               GL_BLEND_EQUATION_RGB_OES
+    #define GLEXT_GL_BLEND_EQUATION_ALPHA             GL_BLEND_EQUATION_ALPHA_OES
 
     // Core since 2.0 - OES_texture_npot
     #define GLEXT_texture_non_power_of_two            false
@@ -103,6 +109,33 @@
     #define GLEXT_GL_FRAMEBUFFER_COMPLETE             GL_FRAMEBUFFER_COMPLETE_OES
     #define GLEXT_GL_FRAMEBUFFER_BINDING              GL_FRAMEBUFFER_BINDING_OES
     #define GLEXT_GL_INVALID_FRAMEBUFFER_OPERATION    GL_INVALID_FRAMEBUFFER_OPERATION_OES
+
+    // Uncategorized, for now...
+    #define GLEXT_vertex_buffer_object                false
+    #define GLEXT_glBindBuffer                        glBindBuffer
+    #define GLEXT_glDeleteBuffers                     glDeleteBuffers
+    #define GLEXT_glGenBuffers                        glGenBuffers
+    #define GLEXT_glBufferData                        glBufferData
+    #define GLEXT_GL_ARRAY_BUFFER                     GL_ARRAY_BUFFER
+    #define GLEXT_GL_ARRAY_BUFFER_BINDING             GL_ARRAY_BUFFER_BINDING
+    #define GLEXT_GL_STREAM_DRAW                      GL_STREAM_DRAW
+
+    #define GLEXT_vertex_program                      false
+    #define GLEXT_glVertexAttribPointer               glVertexAttribPointer
+    #define GLEXT_glEnableVertexAttribArray           glEnableVertexAttribArray
+    #define GLEXT_glDisableVertexAttribArray          glDisableVertexAttribArray
+    #define GLEXT_glGetVertexAttribiv                 glGetVertexAttribiv
+    #define GLEXT_GL_VERTEX_ATTRIB_ARRAY_ENABLED      GL_VERTEX_ATTRIB_ARRAY_ENABLED
+
+    #define GLEXT_shader_objects                      false
+    #define GLEXT_glGetHandle                         glGetHandle
+    #define GLEXT_glUseProgramObject                  glUseProgramObject
+    #define GLEXT_GL_PROGRAM_OBJECT                   GL_PROGRAM_OBJECT
+    #define GLEXT_GLhandle                            GLhandle
+
+    #define GLEXT_vertex_shader                       false
+    #define GLEXT_glBindAttribLocation                glBindAttribLocation
+    #define GLEXT_glGetAttribLocation                 glGetAttribLocation
 
 #else
 
@@ -143,6 +176,28 @@
     // Core since 1.4 - EXT_blend_func_separate
     #define GLEXT_blend_func_separate                 sfogl_ext_EXT_blend_func_separate
     #define GLEXT_glBlendFuncSeparate                 glBlendFuncSeparateEXT
+    #define GLEXT_GL_BLEND_DST_RGB                    GL_BLEND_DST_RGB_EXT
+    #define GLEXT_GL_BLEND_SRC_RGB                    GL_BLEND_SRC_RGB_EXT
+    #define GLEXT_GL_BLEND_DST_ALPHA                  GL_BLEND_DST_ALPHA_EXT
+    #define GLEXT_GL_BLEND_SRC_ALPHA                  GL_BLEND_SRC_ALPHA_EXT
+
+    // Core since 1.5 - GL_ARB_vertex_buffer_object
+    #define GLEXT_vertex_buffer_object                sfogl_ext_ARB_vertex_buffer_object
+    #define GLEXT_glBindBuffer                        glBindBufferARB
+    #define GLEXT_glDeleteBuffers                     glDeleteBuffersARB
+    #define GLEXT_glGenBuffers                        glGenBuffersARB
+    #define GLEXT_glBufferData                        glBufferDataARB
+    #define GLEXT_GL_ARRAY_BUFFER                     GL_ARRAY_BUFFER_ARB
+    #define GLEXT_GL_ARRAY_BUFFER_BINDING             GL_ARRAY_BUFFER_BINDING_ARB
+    #define GLEXT_GL_STREAM_DRAW                      GL_STREAM_DRAW_ARB
+
+    // Core since 2.0 - GL_ARB_vertex_program
+    #define GLEXT_vertex_program                      sfogl_ext_ARB_vertex_program
+    #define GLEXT_glVertexAttribPointer               glVertexAttribPointerARB
+    #define GLEXT_glEnableVertexAttribArray           glEnableVertexAttribArrayARB
+    #define GLEXT_glDisableVertexAttribArray          glDisableVertexAttribArrayARB
+    #define GLEXT_glGetVertexAttribiv                 glGetVertexAttribivARB
+    #define GLEXT_GL_VERTEX_ATTRIB_ARRAY_ENABLED      GL_VERTEX_ATTRIB_ARRAY_ENABLED_ARB
 
     // Core since 2.0 - ARB_shading_language_100
     #define GLEXT_shading_language_100                sfogl_ext_ARB_shading_language_100
@@ -174,6 +229,8 @@
 
     // Core since 2.0 - ARB_vertex_shader
     #define GLEXT_vertex_shader                       sfogl_ext_ARB_vertex_shader
+    #define GLEXT_glBindAttribLocation                glBindAttribLocationARB
+    #define GLEXT_glGetAttribLocation                 glGetAttribLocationARB
     #define GLEXT_GL_VERTEX_SHADER                    GL_VERTEX_SHADER_ARB
     #define GLEXT_GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS_ARB
 
@@ -187,6 +244,8 @@
     // Core since 2.0 - EXT_blend_equation_separate
     #define GLEXT_blend_equation_separate             sfogl_ext_EXT_blend_equation_separate
     #define GLEXT_glBlendEquationSeparate             glBlendEquationSeparateEXT
+    #define GLEXT_GL_BLEND_EQUATION_RGB               GL_BLEND_EQUATION_RGB_EXT
+    #define GLEXT_GL_BLEND_EQUATION_ALPHA             GL_BLEND_EQUATION_ALPHA_EXT
 
     // Core since 3.0 - EXT_framebuffer_object
     #define GLEXT_framebuffer_object                  sfogl_ext_EXT_framebuffer_object

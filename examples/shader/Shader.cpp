@@ -268,7 +268,7 @@ int main()
 {
     // Create the main window
     sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Shader",
-                            sf::Style::Titlebar | sf::Style::Close);
+                            sf::Style::Titlebar | sf::Style::Close, sf::ContextSettings(), sf::RenderWindow::Default);
     window.setVerticalSyncEnabled(true);
 
     // Load the application font and pass it to the Effect class

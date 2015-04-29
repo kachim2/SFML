@@ -34,8 +34,9 @@
 namespace sf
 {
 ////////////////////////////////////////////////////////////
-RenderTexture::RenderTexture() :
-m_impl(NULL)
+RenderTexture::RenderTexture(ImplementationHint hint) :
+RenderTarget(hint),
+m_impl      (NULL)
 {
 
 }
@@ -44,6 +45,7 @@ m_impl(NULL)
 ////////////////////////////////////////////////////////////
 RenderTexture::~RenderTexture()
 {
+    RenderTarget::deinitialize();
     delete m_impl;
 }
 
@@ -62,6 +64,7 @@ bool RenderTexture::create(unsigned int width, unsigned int height, bool depthBu
     setSmooth(false);
 
     // Create the implementation
+    RenderTarget::deinitialize();
     delete m_impl;
     if (priv::RenderTextureImplFBO::isAvailable())
     {

@@ -28,7 +28,7 @@ int main()
 
     // Create the window of the application
     sf::RenderWindow window(sf::VideoMode(gameWidth, gameHeight, 32), "SFML Pong",
-                            sf::Style::Titlebar | sf::Style::Close);
+                            sf::Style::Titlebar | sf::Style::Close, sf::ContextSettings(), sf::RenderWindow::Automatic);
     window.setVerticalSyncEnabled(true);
 
     // Load the sounds used in the game

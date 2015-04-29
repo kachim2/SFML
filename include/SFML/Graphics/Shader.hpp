@@ -41,6 +41,11 @@
 
 namespace sf
 {
+namespace priv
+{
+class RenderTargetImplVBO;
+}
+
 class InputStream;
 class Texture;
 
@@ -508,6 +513,8 @@ public:
 
 private:
 
+    friend class priv::RenderTargetImplVBO;
+
     ////////////////////////////////////////////////////////////
     /// \brief Compile the shader(s) and create the program
     ///
@@ -554,6 +561,8 @@ private:
     int          m_currentTexture; ///< Location of the current texture in the shader
     TextureTable m_textures;       ///< Texture variables in the shader, mapped to their location
     ParamTable   m_params;         ///< Parameters location cache
+    Uint64       m_cacheId;        ///< Unique number that identifies the shader to the render target's cache
+    bool         m_compatible;     ///< Is this shader compatible with the RenderTarget?
 };
 
 } // namespace sf

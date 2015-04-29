@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2015 Laurent Gomila (laurent@sfml-dev.org)
+// Copyright (C) 2007-2014 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -22,13 +22,12 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef SFML_RENDERTARGET_HPP
-#define SFML_RENDERTARGET_HPP
+#ifndef SFML_RENDERTARGETIMPL_HPP
+#define SFML_RENDERTARGETIMPL_HPP
 
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
-#include <SFML/Graphics/Export.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/View.hpp>
@@ -42,36 +41,43 @@
 
 namespace sf
 {
+class Drawable;
+class RenderTarget;
+
 namespace priv
 {
-    class RenderTargetImpl;
-}
-
-class Drawable;
 
 ////////////////////////////////////////////////////////////
 /// \brief Base class for all render targets (window, texture, ...)
 ///
 ////////////////////////////////////////////////////////////
-class SFML_GRAPHICS_API RenderTarget : NonCopyable
+class RenderTargetImpl : NonCopyable
 {
 public:
-    ////////////////////////////////////////////////////////////
-    /// \brief Enumeration of the context attribute flags
-    ///
-    ////////////////////////////////////////////////////////////
-    enum ImplementationHint
-    {
-        Default,   ///< Default, legacy implementation
-        Automatic, ///< Automatically choose implementation type
-        Vbo,       ///< Vbo implementation
-    };
 
     ////////////////////////////////////////////////////////////
     /// \brief Destructor
     ///
     ////////////////////////////////////////////////////////////
-    virtual ~RenderTarget();
+    virtual ~RenderTargetImpl();
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Performs the common initialization step after creation
+    ///
+    /// The derived classes must call this function after the
+    /// target is created and ready for drawing.
+    ///
+    ////////////////////////////////////////////////////////////
+    virtual void initialize();
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Performs the common de-initialization step before destruction
+    ///
+    /// The derived classes must call this function before the
+    /// target and its context are destroyed.
+    ///
+    ////////////////////////////////////////////////////////////
+    virtual void deinitialize();
 
     ////////////////////////////////////////////////////////////
     /// \brief Clear the entire target with a single color
@@ -82,7 +88,7 @@ public:
     /// \param color Fill color to use to clear the render target
     ///
     ////////////////////////////////////////////////////////////
-    void clear(const Color& color = Color(0, 0, 0, 255));
+    virtual void clear(const Color& color = Color(0, 0, 0, 255)) = 0;
 
     ////////////////////////////////////////////////////////////
     /// \brief Change the current active view
@@ -103,7 +109,7 @@ public:
     /// \see getView, getDefaultView
     ///
     ////////////////////////////////////////////////////////////
-    void setView(const View& view);
+    virtual void setView(const View& view);
 
     ////////////////////////////////////////////////////////////
     /// \brief Get the view currently in use in the render target
@@ -144,113 +150,6 @@ public:
     IntRect getViewport(const View& view) const;
 
     ////////////////////////////////////////////////////////////
-    /// \brief Convert a point from target coordinates to world
-    ///        coordinates, using the current view
-    ///
-    /// This function is an overload of the mapPixelToCoords
-    /// function that implicitly uses the current view.
-    /// It is equivalent to:
-    /// \code
-    /// target.mapPixelToCoords(point, target.getView());
-    /// \endcode
-    ///
-    /// \param point Pixel to convert
-    ///
-    /// \return The converted point, in "world" coordinates
-    ///
-    /// \see mapCoordsToPixel
-    ///
-    ////////////////////////////////////////////////////////////
-    Vector2f mapPixelToCoords(const Vector2i& point) const;
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Convert a point from target coordinates to world coordinates
-    ///
-    /// This function finds the 2D position that matches the
-    /// given pixel of the render target. In other words, it does
-    /// the inverse of what the graphics card does, to find the
-    /// initial position of a rendered pixel.
-    ///
-    /// Initially, both coordinate systems (world units and target pixels)
-    /// match perfectly. But if you define a custom view or resize your
-    /// render target, this assertion is not true anymore, i.e. a point
-    /// located at (10, 50) in your render target may map to the point
-    /// (150, 75) in your 2D world -- if the view is translated by (140, 25).
-    ///
-    /// For render-windows, this function is typically used to find
-    /// which point (or object) is located below the mouse cursor.
-    ///
-    /// This version uses a custom view for calculations, see the other
-    /// overload of the function if you want to use the current view of the
-    /// render target.
-    ///
-    /// \param point Pixel to convert
-    /// \param view The view to use for converting the point
-    ///
-    /// \return The converted point, in "world" units
-    ///
-    /// \see mapCoordsToPixel
-    ///
-    ////////////////////////////////////////////////////////////
-    Vector2f mapPixelToCoords(const Vector2i& point, const View& view) const;
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Convert a point from world coordinates to target
-    ///        coordinates, using the current view
-    ///
-    /// This function is an overload of the mapCoordsToPixel
-    /// function that implicitly uses the current view.
-    /// It is equivalent to:
-    /// \code
-    /// target.mapCoordsToPixel(point, target.getView());
-    /// \endcode
-    ///
-    /// \param point Point to convert
-    ///
-    /// \return The converted point, in target coordinates (pixels)
-    ///
-    /// \see mapPixelToCoords
-    ///
-    ////////////////////////////////////////////////////////////
-    Vector2i mapCoordsToPixel(const Vector2f& point) const;
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Convert a point from world coordinates to target coordinates
-    ///
-    /// This function finds the pixel of the render target that matches
-    /// the given 2D point. In other words, it goes through the same process
-    /// as the graphics card, to compute the final position of a rendered point.
-    ///
-    /// Initially, both coordinate systems (world units and target pixels)
-    /// match perfectly. But if you define a custom view or resize your
-    /// render target, this assertion is not true anymore, i.e. a point
-    /// located at (150, 75) in your 2D world may map to the pixel
-    /// (10, 50) of your render target -- if the view is translated by (140, 25).
-    ///
-    /// This version uses a custom view for calculations, see the other
-    /// overload of the function if you want to use the current view of the
-    /// render target.
-    ///
-    /// \param point Point to convert
-    /// \param view The view to use for converting the point
-    ///
-    /// \return The converted point, in target coordinates (pixels)
-    ///
-    /// \see mapPixelToCoords
-    ///
-    ////////////////////////////////////////////////////////////
-    Vector2i mapCoordsToPixel(const Vector2f& point, const View& view) const;
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Draw a drawable object to the render target
-    ///
-    /// \param drawable Object to draw
-    /// \param states   Render states to use for drawing
-    ///
-    ////////////////////////////////////////////////////////////
-    void draw(const Drawable& drawable, const RenderStates& states = RenderStates::Default);
-
-    ////////////////////////////////////////////////////////////
     /// \brief Draw primitives defined by an array of vertices
     ///
     /// \param vertices    Pointer to the vertices
@@ -259,16 +158,8 @@ public:
     /// \param states      Render states to use for drawing
     ///
     ////////////////////////////////////////////////////////////
-    void draw(const Vertex* vertices, std::size_t vertexCount,
-              PrimitiveType type, const RenderStates& states = RenderStates::Default);
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Return the size of the rendering region of the target
-    ///
-    /// \return Size in pixels
-    ///
-    ////////////////////////////////////////////////////////////
-    virtual Vector2u getSize() const = 0;
+    virtual void draw(const Vertex* vertices, std::size_t vertexCount,
+                      PrimitiveType type, const RenderStates& states = RenderStates::Default) = 0;
 
     ////////////////////////////////////////////////////////////
     /// \brief Save the current OpenGL render states and matrices
@@ -302,7 +193,7 @@ public:
     /// \see popGLStates
     ///
     ////////////////////////////////////////////////////////////
-    void pushGLStates();
+    virtual void pushGLStates() = 0;
 
     ////////////////////////////////////////////////////////////
     /// \brief Restore the previously saved OpenGL render states and matrices
@@ -313,7 +204,7 @@ public:
     /// \see pushGLStates
     ///
     ////////////////////////////////////////////////////////////
-    void popGLStates();
+    virtual void popGLStates() = 0;
 
     ////////////////////////////////////////////////////////////
     /// \brief Reset the internal OpenGL states so that the target is ready for drawing
@@ -336,39 +227,25 @@ public:
     /// \endcode
     ///
     ////////////////////////////////////////////////////////////
-    void resetGLStates();
+    virtual void resetGLStates() = 0;
 
 protected:
 
     ////////////////////////////////////////////////////////////
     /// \brief Default constructor
     ///
-    /// \param hint Which underlying implementation to prefer
+    /// \param target Owning RenderTarget
     ///
     ////////////////////////////////////////////////////////////
-    RenderTarget(ImplementationHint hint);
+    RenderTargetImpl(RenderTarget& target);
 
     ////////////////////////////////////////////////////////////
-    /// \brief Performs the common initialization step after creation
+    /// \brief Return the size of the rendering region of the target
     ///
-    /// The derived classes must call this function after the
-    /// target is created and ready for drawing.
-    ///
-    ////////////////////////////////////////////////////////////
-    void initialize();
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Performs the common de-initialization step before destruction
-    ///
-    /// The derived classes must call this function before the
-    /// target and its context are destroyed.
+    /// \return Size in pixels
     ///
     ////////////////////////////////////////////////////////////
-    void deinitialize();
-
-private:
-
-    friend class priv::RenderTargetImpl;
+    Vector2u getSize() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Activate the target for rendering
@@ -382,44 +259,22 @@ private:
     /// \return True if the function succeeded
     ///
     ////////////////////////////////////////////////////////////
-    virtual bool activate(bool active) = 0;
+    bool activate(bool active);
+
+private:
 
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    priv::RenderTargetImpl* m_impl;        ///< Platform/hardware specific implementation
-    View                    m_defaultView; ///< Default view
-    View                    m_view;        ///< Current view
+    RenderTarget& m_target;      ///< Owner RenderTarget
+    View          m_defaultView; ///< Default view
+    View          m_view;        ///< Current view
+    Vector2u      m_size;        ///< Size of the rendering region of the target in pixels
 };
+
+} // namespace priv
 
 } // namespace sf
 
 
-#endif // SFML_RENDERTARGET_HPP
-
-
-////////////////////////////////////////////////////////////
-/// \class sf::RenderTarget
-/// \ingroup graphics
-///
-/// sf::RenderTarget defines the common behavior of all the
-/// 2D render targets usable in the graphics module. It makes
-/// it possible to draw 2D entities like sprites, shapes, text
-/// without using any OpenGL command directly.
-///
-/// A sf::RenderTarget is also able to use views (sf::View),
-/// which are a kind of 2D cameras. With views you can globally
-/// scroll, rotate or zoom everything that is drawn,
-/// without having to transform every single entity. See the
-/// documentation of sf::View for more details and sample pieces of
-/// code about this class.
-///
-/// On top of that, render targets are still able to render direct
-/// OpenGL stuff. It is even possible to mix together OpenGL calls
-/// and regular SFML drawing commands. When doing so, make sure that
-/// OpenGL states are not messed up by calling the
-/// pushGLStates/popGLStates functions.
-///
-/// \see sf::RenderWindow, sf::RenderTexture, sf::View
-///
-////////////////////////////////////////////////////////////
+#endif // SFML_RENDERTARGETIMPL_HPP

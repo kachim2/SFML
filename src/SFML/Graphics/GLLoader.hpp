@@ -178,6 +178,8 @@ extern int sfogl_ext_EXT_blend_minmax;
 extern int sfogl_ext_EXT_blend_subtract;
 extern int sfogl_ext_ARB_multitexture;
 extern int sfogl_ext_EXT_blend_func_separate;
+extern int sfogl_ext_ARB_vertex_buffer_object;
+extern int sfogl_ext_ARB_vertex_program;
 extern int sfogl_ext_ARB_shading_language_100;
 extern int sfogl_ext_ARB_shader_objects;
 extern int sfogl_ext_ARB_vertex_shader;
@@ -236,6 +238,46 @@ extern int sfogl_ext_EXT_framebuffer_object;
 #define GL_BLEND_DST_RGB_EXT 0x80C8
 #define GL_BLEND_SRC_ALPHA_EXT 0x80CB
 #define GL_BLEND_SRC_RGB_EXT 0x80C9
+
+#define GL_ARRAY_BUFFER_ARB 0x8892
+#define GL_ARRAY_BUFFER_BINDING_ARB 0x8894
+#define GL_BUFFER_ACCESS_ARB 0x88BB
+#define GL_BUFFER_MAPPED_ARB 0x88BC
+#define GL_BUFFER_MAP_POINTER_ARB 0x88BD
+#define GL_BUFFER_SIZE_ARB 0x8764
+#define GL_BUFFER_USAGE_ARB 0x8765
+#define GL_COLOR_ARRAY_BUFFER_BINDING_ARB 0x8898
+#define GL_DYNAMIC_COPY_ARB 0x88EA
+#define GL_DYNAMIC_DRAW_ARB 0x88E8
+#define GL_DYNAMIC_READ_ARB 0x88E9
+#define GL_EDGE_FLAG_ARRAY_BUFFER_BINDING_ARB 0x889B
+#define GL_ELEMENT_ARRAY_BUFFER_ARB 0x8893
+#define GL_ELEMENT_ARRAY_BUFFER_BINDING_ARB 0x8895
+#define GL_FOG_COORDINATE_ARRAY_BUFFER_BINDING_ARB 0x889D
+#define GL_INDEX_ARRAY_BUFFER_BINDING_ARB 0x8899
+#define GL_NORMAL_ARRAY_BUFFER_BINDING_ARB 0x8897
+#define GL_READ_ONLY_ARB 0x88B8
+#define GL_READ_WRITE_ARB 0x88BA
+#define GL_SECONDARY_COLOR_ARRAY_BUFFER_BINDING_ARB 0x889C
+#define GL_STATIC_COPY_ARB 0x88E6
+#define GL_STATIC_DRAW_ARB 0x88E4
+#define GL_STATIC_READ_ARB 0x88E5
+#define GL_STREAM_COPY_ARB 0x88E2
+#define GL_STREAM_DRAW_ARB 0x88E0
+#define GL_STREAM_READ_ARB 0x88E1
+#define GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING_ARB 0x889A
+#define GL_VERTEX_ARRAY_BUFFER_BINDING_ARB 0x8896
+#define GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING_ARB 0x889F
+#define GL_WEIGHT_ARRAY_BUFFER_BINDING_ARB 0x889E
+#define GL_WRITE_ONLY_ARB 0x88B9
+
+#define GL_MAX_VERTEX_ATTRIBS_ARB 0x8869
+#define GL_VERTEX_ATTRIB_ARRAY_ENABLED_ARB 0x8622
+#define GL_VERTEX_ATTRIB_ARRAY_NORMALIZED_ARB 0x886A
+#define GL_VERTEX_ATTRIB_ARRAY_POINTER_ARB 0x8645
+#define GL_VERTEX_ATTRIB_ARRAY_SIZE_ARB 0x8623
+#define GL_VERTEX_ATTRIB_ARRAY_STRIDE_ARB 0x8624
+#define GL_VERTEX_ATTRIB_ARRAY_TYPE_ARB 0x8625
 
 #define GL_SHADING_LANGUAGE_VERSION_ARB 0x8B8C
 
@@ -804,6 +846,50 @@ extern void (CODEGEN_FUNCPTR *sf_ptrc_glClientActiveTextureARB)(GLenum);
 extern void (CODEGEN_FUNCPTR *sf_ptrc_glBlendFuncSeparateEXT)(GLenum, GLenum, GLenum, GLenum);
 #define glBlendFuncSeparateEXT sf_ptrc_glBlendFuncSeparateEXT
 #endif /*GL_EXT_blend_func_separate*/
+
+#ifndef GL_ARB_vertex_buffer_object
+#define GL_ARB_vertex_buffer_object 1
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glBindBufferARB)(GLenum, GLuint);
+#define glBindBufferARB sf_ptrc_glBindBufferARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glBufferDataARB)(GLenum, GLsizeiptrARB, const GLvoid *, GLenum);
+#define glBufferDataARB sf_ptrc_glBufferDataARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glBufferSubDataARB)(GLenum, GLintptrARB, GLsizeiptrARB, const GLvoid *);
+#define glBufferSubDataARB sf_ptrc_glBufferSubDataARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glDeleteBuffersARB)(GLsizei, const GLuint *);
+#define glDeleteBuffersARB sf_ptrc_glDeleteBuffersARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glGenBuffersARB)(GLsizei, GLuint *);
+#define glGenBuffersARB sf_ptrc_glGenBuffersARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glGetBufferParameterivARB)(GLenum, GLenum, GLint *);
+#define glGetBufferParameterivARB sf_ptrc_glGetBufferParameterivARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glGetBufferPointervARB)(GLenum, GLenum, GLvoid **);
+#define glGetBufferPointervARB sf_ptrc_glGetBufferPointervARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glGetBufferSubDataARB)(GLenum, GLintptrARB, GLsizeiptrARB, GLvoid *);
+#define glGetBufferSubDataARB sf_ptrc_glGetBufferSubDataARB
+extern GLboolean (CODEGEN_FUNCPTR *sf_ptrc_glIsBufferARB)(GLuint);
+#define glIsBufferARB sf_ptrc_glIsBufferARB
+extern void * (CODEGEN_FUNCPTR *sf_ptrc_glMapBufferARB)(GLenum, GLenum);
+#define glMapBufferARB sf_ptrc_glMapBufferARB
+extern GLboolean (CODEGEN_FUNCPTR *sf_ptrc_glUnmapBufferARB)(GLenum);
+#define glUnmapBufferARB sf_ptrc_glUnmapBufferARB
+#endif /*GL_ARB_vertex_buffer_object*/
+
+#ifndef GL_ARB_vertex_program
+#define GL_ARB_vertex_program 1
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glDisableVertexAttribArrayARB)(GLuint);
+#define glDisableVertexAttribArrayARB sf_ptrc_glDisableVertexAttribArrayARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glEnableVertexAttribArrayARB)(GLuint);
+#define glEnableVertexAttribArrayARB sf_ptrc_glEnableVertexAttribArrayARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glGetVertexAttribPointervARB)(GLuint, GLenum, GLvoid **);
+#define glGetVertexAttribPointervARB sf_ptrc_glGetVertexAttribPointervARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glGetVertexAttribdvARB)(GLuint, GLenum, GLdouble *);
+#define glGetVertexAttribdvARB sf_ptrc_glGetVertexAttribdvARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glGetVertexAttribfvARB)(GLuint, GLenum, GLfloat *);
+#define glGetVertexAttribfvARB sf_ptrc_glGetVertexAttribfvARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glGetVertexAttribivARB)(GLuint, GLenum, GLint *);
+#define glGetVertexAttribivARB sf_ptrc_glGetVertexAttribivARB
+extern void (CODEGEN_FUNCPTR *sf_ptrc_glVertexAttribPointerARB)(GLuint, GLint, GLenum, GLboolean, GLsizei, const GLvoid *);
+#define glVertexAttribPointerARB sf_ptrc_glVertexAttribPointerARB
+#endif /*GL_ARB_vertex_program*/
 
 #ifndef GL_ARB_shader_objects
 #define GL_ARB_shader_objects 1

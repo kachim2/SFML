@@ -35,8 +35,13 @@
 
 namespace sf
 {
+namespace priv
+{
+class RenderTargetImplDefault;
+class RenderTargetImplVBO;
+}
+
 class Window;
-class RenderTarget;
 class RenderTexture;
 class InputStream;
 
@@ -483,7 +488,8 @@ public:
 private:
 
     friend class RenderTexture;
-    friend class RenderTarget;
+    friend class priv::RenderTargetImplDefault;
+    friend class priv::RenderTargetImplVBO;
 
     ////////////////////////////////////////////////////////////
     /// \brief Get a valid image size according to hardware support

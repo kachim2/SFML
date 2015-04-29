@@ -74,8 +74,8 @@ int main()
     // Let's create two SFML views
     HWND view1 = CreateWindow(TEXT("STATIC"), NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS, 20,  20, 300, 400, window, NULL, instance, NULL);
     HWND view2 = CreateWindow(TEXT("STATIC"), NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS, 340, 20, 300, 400, window, NULL, instance, NULL);
-    sf::RenderWindow SFMLView1(view1);
-    sf::RenderWindow SFMLView2(view2);
+    sf::RenderWindow SFMLView1(view1, sf::ContextSettings(), sf::RenderWindow::Automatic);
+    sf::RenderWindow SFMLView2(view2, sf::ContextSettings(), sf::RenderWindow::Automatic);
 
     // Load some textures to display
     sf::Texture texture1, texture2;

@@ -54,6 +54,8 @@ int sfogl_ext_EXT_blend_minmax = sfogl_LOAD_FAILED;
 int sfogl_ext_EXT_blend_subtract = sfogl_LOAD_FAILED;
 int sfogl_ext_ARB_multitexture = sfogl_LOAD_FAILED;
 int sfogl_ext_EXT_blend_func_separate = sfogl_LOAD_FAILED;
+int sfogl_ext_ARB_vertex_buffer_object = sfogl_LOAD_FAILED;
+int sfogl_ext_ARB_vertex_program = sfogl_LOAD_FAILED;
 int sfogl_ext_ARB_shading_language_100 = sfogl_LOAD_FAILED;
 int sfogl_ext_ARB_shader_objects = sfogl_LOAD_FAILED;
 int sfogl_ext_ARB_vertex_shader = sfogl_LOAD_FAILED;
@@ -92,6 +94,74 @@ static int Load_EXT_blend_func_separate()
     int numFailed = 0;
     sf_ptrc_glBlendFuncSeparateEXT = (void (CODEGEN_FUNCPTR *)(GLenum, GLenum, GLenum, GLenum))IntGetProcAddress("glBlendFuncSeparateEXT");
     if(!sf_ptrc_glBlendFuncSeparateEXT) numFailed++;
+    return numFailed;
+}
+
+void (CODEGEN_FUNCPTR *sf_ptrc_glBindBufferARB)(GLenum, GLuint) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glBufferDataARB)(GLenum, GLsizeiptrARB, const GLvoid *, GLenum) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glBufferSubDataARB)(GLenum, GLintptrARB, GLsizeiptrARB, const GLvoid *) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glDeleteBuffersARB)(GLsizei, const GLuint *) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glGenBuffersARB)(GLsizei, GLuint *) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glGetBufferParameterivARB)(GLenum, GLenum, GLint *) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glGetBufferPointervARB)(GLenum, GLenum, GLvoid **) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glGetBufferSubDataARB)(GLenum, GLintptrARB, GLsizeiptrARB, GLvoid *) = NULL;
+GLboolean (CODEGEN_FUNCPTR *sf_ptrc_glIsBufferARB)(GLuint) = NULL;
+void * (CODEGEN_FUNCPTR *sf_ptrc_glMapBufferARB)(GLenum, GLenum) = NULL;
+GLboolean (CODEGEN_FUNCPTR *sf_ptrc_glUnmapBufferARB)(GLenum) = NULL;
+
+static int Load_ARB_vertex_buffer_object()
+{
+    int numFailed = 0;
+    sf_ptrc_glBindBufferARB = (void (CODEGEN_FUNCPTR *)(GLenum, GLuint))IntGetProcAddress("glBindBufferARB");
+    if(!sf_ptrc_glBindBufferARB) numFailed++;
+    sf_ptrc_glBufferDataARB = (void (CODEGEN_FUNCPTR *)(GLenum, GLsizeiptrARB, const GLvoid *, GLenum))IntGetProcAddress("glBufferDataARB");
+    if(!sf_ptrc_glBufferDataARB) numFailed++;
+    sf_ptrc_glBufferSubDataARB = (void (CODEGEN_FUNCPTR *)(GLenum, GLintptrARB, GLsizeiptrARB, const GLvoid *))IntGetProcAddress("glBufferSubDataARB");
+    if(!sf_ptrc_glBufferSubDataARB) numFailed++;
+    sf_ptrc_glDeleteBuffersARB = (void (CODEGEN_FUNCPTR *)(GLsizei, const GLuint *))IntGetProcAddress("glDeleteBuffersARB");
+    if(!sf_ptrc_glDeleteBuffersARB) numFailed++;
+    sf_ptrc_glGenBuffersARB = (void (CODEGEN_FUNCPTR *)(GLsizei, GLuint *))IntGetProcAddress("glGenBuffersARB");
+    if(!sf_ptrc_glGenBuffersARB) numFailed++;
+    sf_ptrc_glGetBufferParameterivARB = (void (CODEGEN_FUNCPTR *)(GLenum, GLenum, GLint *))IntGetProcAddress("glGetBufferParameterivARB");
+    if(!sf_ptrc_glGetBufferParameterivARB) numFailed++;
+    sf_ptrc_glGetBufferPointervARB = (void (CODEGEN_FUNCPTR *)(GLenum, GLenum, GLvoid **))IntGetProcAddress("glGetBufferPointervARB");
+    if(!sf_ptrc_glGetBufferPointervARB) numFailed++;
+    sf_ptrc_glGetBufferSubDataARB = (void (CODEGEN_FUNCPTR *)(GLenum, GLintptrARB, GLsizeiptrARB, GLvoid *))IntGetProcAddress("glGetBufferSubDataARB");
+    if(!sf_ptrc_glGetBufferSubDataARB) numFailed++;
+    sf_ptrc_glIsBufferARB = (GLboolean (CODEGEN_FUNCPTR *)(GLuint))IntGetProcAddress("glIsBufferARB");
+    if(!sf_ptrc_glIsBufferARB) numFailed++;
+    sf_ptrc_glMapBufferARB = (void * (CODEGEN_FUNCPTR *)(GLenum, GLenum))IntGetProcAddress("glMapBufferARB");
+    if(!sf_ptrc_glMapBufferARB) numFailed++;
+    sf_ptrc_glUnmapBufferARB = (GLboolean (CODEGEN_FUNCPTR *)(GLenum))IntGetProcAddress("glUnmapBufferARB");
+    if(!sf_ptrc_glUnmapBufferARB) numFailed++;
+    return numFailed;
+}
+
+void (CODEGEN_FUNCPTR *sf_ptrc_glDisableVertexAttribArrayARB)(GLuint) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glEnableVertexAttribArrayARB)(GLuint) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glGetVertexAttribPointervARB)(GLuint, GLenum, GLvoid **) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glGetVertexAttribdvARB)(GLuint, GLenum, GLdouble *) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glGetVertexAttribfvARB)(GLuint, GLenum, GLfloat *) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glGetVertexAttribivARB)(GLuint, GLenum, GLint *) = NULL;
+void (CODEGEN_FUNCPTR *sf_ptrc_glVertexAttribPointerARB)(GLuint, GLint, GLenum, GLboolean, GLsizei, const GLvoid *) = NULL;
+
+static int Load_ARB_vertex_program()
+{
+    int numFailed = 0;
+    sf_ptrc_glDisableVertexAttribArrayARB = (void (CODEGEN_FUNCPTR *)(GLuint))IntGetProcAddress("glDisableVertexAttribArrayARB");
+    if(!sf_ptrc_glDisableVertexAttribArrayARB) numFailed++;
+    sf_ptrc_glEnableVertexAttribArrayARB = (void (CODEGEN_FUNCPTR *)(GLuint))IntGetProcAddress("glEnableVertexAttribArrayARB");
+    if(!sf_ptrc_glEnableVertexAttribArrayARB) numFailed++;
+    sf_ptrc_glGetVertexAttribPointervARB = (void (CODEGEN_FUNCPTR *)(GLuint, GLenum, GLvoid **))IntGetProcAddress("glGetVertexAttribPointervARB");
+    if(!sf_ptrc_glGetVertexAttribPointervARB) numFailed++;
+    sf_ptrc_glGetVertexAttribdvARB = (void (CODEGEN_FUNCPTR *)(GLuint, GLenum, GLdouble *))IntGetProcAddress("glGetVertexAttribdvARB");
+    if(!sf_ptrc_glGetVertexAttribdvARB) numFailed++;
+    sf_ptrc_glGetVertexAttribfvARB = (void (CODEGEN_FUNCPTR *)(GLuint, GLenum, GLfloat *))IntGetProcAddress("glGetVertexAttribfvARB");
+    if(!sf_ptrc_glGetVertexAttribfvARB) numFailed++;
+    sf_ptrc_glGetVertexAttribivARB = (void (CODEGEN_FUNCPTR *)(GLuint, GLenum, GLint *))IntGetProcAddress("glGetVertexAttribivARB");
+    if(!sf_ptrc_glGetVertexAttribivARB) numFailed++;
+    sf_ptrc_glVertexAttribPointerARB = (void (CODEGEN_FUNCPTR *)(GLuint, GLint, GLenum, GLboolean, GLsizei, const GLvoid *))IntGetProcAddress("glVertexAttribPointerARB");
+    if(!sf_ptrc_glVertexAttribPointerARB) numFailed++;
     return numFailed;
 }
 
@@ -317,12 +387,14 @@ typedef struct sfogl_StrToExtMap_s
     PFN_LOADFUNCPOINTERS LoadExtension;
 } sfogl_StrToExtMap;
 
-static sfogl_StrToExtMap ExtensionMap[12] = {
+static sfogl_StrToExtMap ExtensionMap[14] = {
     {"GL_SGIS_texture_edge_clamp", &sfogl_ext_SGIS_texture_edge_clamp, NULL},
     {"GL_EXT_blend_minmax", &sfogl_ext_EXT_blend_minmax, Load_EXT_blend_minmax},
     {"GL_EXT_blend_subtract", &sfogl_ext_EXT_blend_subtract, NULL},
     {"GL_ARB_multitexture", &sfogl_ext_ARB_multitexture, Load_ARB_multitexture},
     {"GL_EXT_blend_func_separate", &sfogl_ext_EXT_blend_func_separate, Load_EXT_blend_func_separate},
+    {"GL_ARB_vertex_buffer_object", &sfogl_ext_ARB_vertex_buffer_object, Load_ARB_vertex_buffer_object},
+    {"GL_ARB_vertex_program", &sfogl_ext_ARB_vertex_program, Load_ARB_vertex_program},
     {"GL_ARB_shading_language_100", &sfogl_ext_ARB_shading_language_100, NULL},
     {"GL_ARB_shader_objects", &sfogl_ext_ARB_shader_objects, Load_ARB_shader_objects},
     {"GL_ARB_vertex_shader", &sfogl_ext_ARB_vertex_shader, Load_ARB_vertex_shader},
@@ -332,7 +404,7 @@ static sfogl_StrToExtMap ExtensionMap[12] = {
     {"GL_EXT_framebuffer_object", &sfogl_ext_EXT_framebuffer_object, Load_EXT_framebuffer_object}
 };
 
-static int g_extensionMapSize = 12;
+static int g_extensionMapSize = 14;
 
 static sfogl_StrToExtMap *FindExtEntry(const char *extensionName)
 {
@@ -354,6 +426,8 @@ static void ClearExtensionVars()
     sfogl_ext_EXT_blend_subtract = sfogl_LOAD_FAILED;
     sfogl_ext_ARB_multitexture = sfogl_LOAD_FAILED;
     sfogl_ext_EXT_blend_func_separate = sfogl_LOAD_FAILED;
+    sfogl_ext_ARB_vertex_buffer_object = sfogl_LOAD_FAILED;
+    sfogl_ext_ARB_vertex_program = sfogl_LOAD_FAILED;
     sfogl_ext_ARB_shading_language_100 = sfogl_LOAD_FAILED;
     sfogl_ext_ARB_shader_objects = sfogl_LOAD_FAILED;
     sfogl_ext_ARB_vertex_shader = sfogl_LOAD_FAILED;
