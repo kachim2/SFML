@@ -257,6 +257,19 @@ private:
     static Keyboard::Key virtualKeyCodeToSF(WPARAM key, LPARAM flags);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Function called whenever one of our windows receives a message (external window handle)
+    ///
+    /// \param handle  Win32 handle of the window
+    /// \param message Message received
+    /// \param wParam  First parameter of the message
+    /// \param lParam  Second parameter of the message
+    ///
+    /// \return True to discard the event after it has been processed
+    ///
+    ////////////////////////////////////////////////////////////
+    static LRESULT CALLBACK globalOnEventExternal(HWND handle, UINT message, WPARAM wParam, LPARAM lParam);
+
+    ////////////////////////////////////////////////////////////
     /// \brief Function called whenever one of our windows receives a message
     ///
     /// \param handle  Win32 handle of the window

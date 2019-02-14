@@ -157,7 +157,7 @@ m_cursorGrabbed   (false)
 
         // We change the event procedure of the control (it is important to save the old one)
         SetWindowLongPtrW(m_handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-        m_callback = SetWindowLongPtrW(m_handle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&WindowImplWin32::globalOnEvent));
+        m_callback = SetWindowLongPtrW(m_handle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&WindowImplWin32::globalOnEventExternal));
     }
 }
 
@@ -474,7 +474,7 @@ void WindowImplWin32::registerWindowClass()
     windowClass.style         = 0;
     windowClass.lpfnWndProc   = &WindowImplWin32::globalOnEvent;
     windowClass.cbClsExtra    = 0;
-    windowClass.cbWndExtra    = 0;
+    windowClass.cbWndExtra    = sizeof(LONG_PTR);
     windowClass.hInstance     = GetModuleHandleW(NULL);
     windowClass.hIcon         = NULL;
     windowClass.hCursor       = 0;
@@ -1125,6 +1125,32 @@ Keyboard::Key WindowImplWin32::virtualKeyCodeToSF(WPARAM key, LPARAM flags)
 
 
 ////////////////////////////////////////////////////////////
+LRESULT CALLBACK WindowImplWin32::globalOnEventExternal(HWND handle, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    // Get the WindowImpl instance corresponding to the window handle
+    WindowImplWin32* window = handle ? reinterpret_cast<WindowImplWin32*>(GetWindowLongPtr(handle, GWLP_USERDATA)) : NULL;
+
+    // Forward the event to the appropriate function
+    if (window)
+    {
+        window->processEvent(message, wParam, lParam);
+
+        return CallWindowProcW(reinterpret_cast<WNDPROC>(window->m_callback), handle, message, wParam, lParam);
+    }
+
+    // We don't forward the WM_CLOSE message to prevent the OS from automatically destroying the window
+    if (message == WM_CLOSE)
+        return 0;
+
+    // Don't forward the menu system command, so that pressing ALT or F10 doesn't steal the focus
+    if ((message == WM_SYSCOMMAND) && (wParam == SC_KEYMENU))
+        return 0;
+
+    return DefWindowProcW(handle, message, wParam, lParam);
+}
+
+
+////////////////////////////////////////////////////////////
 LRESULT CALLBACK WindowImplWin32::globalOnEvent(HWND handle, UINT message, WPARAM wParam, LPARAM lParam)
 {
     // Associate handle and Window instance when the creation message is received
@@ -1134,20 +1160,15 @@ LRESULT CALLBACK WindowImplWin32::globalOnEvent(HWND handle, UINT message, WPARA
         LONG_PTR window = (LONG_PTR)reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams;
 
         // Set as the "user data" parameter of the window
-        SetWindowLongPtrW(handle, GWLP_USERDATA, window);
+        SetWindowLongPtrW(handle, 0, window);
     }
 
     // Get the WindowImpl instance corresponding to the window handle
-    WindowImplWin32* window = handle ? reinterpret_cast<WindowImplWin32*>(GetWindowLongPtr(handle, GWLP_USERDATA)) : NULL;
+    WindowImplWin32* window = handle ? reinterpret_cast<WindowImplWin32*>(GetWindowLongPtr(handle, 0)) : NULL;
 
     // Forward the event to the appropriate function
     if (window)
-    {
         window->processEvent(message, wParam, lParam);
-
-        if (window->m_callback)
-            return CallWindowProcW(reinterpret_cast<WNDPROC>(window->m_callback), handle, message, wParam, lParam);
-    }
 
     // We don't forward the WM_CLOSE message to prevent the OS from automatically destroying the window
     if (message == WM_CLOSE)
