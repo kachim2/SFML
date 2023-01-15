@@ -291,13 +291,13 @@ namespace
     {
         // Set our video settings constraint
         const EGLint attributes[] = {
-            EGL_BUFFER_SIZE,    bitsPerPixel,
+            EGL_BUFFER_SIZE,    (EGLint)bitsPerPixel,
             EGL_RED_SIZE,       8,
             EGL_BLUE_SIZE,      8,
             EGL_GREEN_SIZE,     8,
-            EGL_DEPTH_SIZE,     settings.depthBits,
-            EGL_STENCIL_SIZE,   settings.stencilBits,
-            EGL_SAMPLE_BUFFERS, settings.antialiasingLevel,
+            EGL_DEPTH_SIZE,     (EGLint)settings.depthBits,
+            EGL_STENCIL_SIZE,   (EGLint)settings.stencilBits,
+            EGL_SAMPLE_BUFFERS, (EGLint)settings.antialiasingLevel,
             EGL_SURFACE_TYPE,   EGL_RENDERABLE_TYPE, EGL_OPENGL_ES_BIT,
             EGL_NONE,           EGL_NONE
         };
